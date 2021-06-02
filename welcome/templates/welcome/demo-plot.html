@@ -1,0 +1,22 @@
+{% extends "welcome/base.html" %}
+{%load static%}
+{% static 'welcome/demo.js' %}
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<script src="//www.amcharts.com/lib/4/core.js"></script>
+<script src="//www.amcharts.com/lib/4/charts.js"></script>
+<div id="chart"></div>
+<script src="static/welcome/demo.js"></script>
+
+
+    {% block content %}
+            {{ plot_div | safe}}
+            {{table_div | safe}}
+            {{plot_div2 | safe}}
+            {{table_div2 | safe}}
+            {{plot_div3|safe}}
+            {{table_div3|safe}}
+            {{plotPage|safe}}
+            {{plotCard|safe}}
+    {% endblock content %}
