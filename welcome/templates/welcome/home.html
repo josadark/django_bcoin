@@ -16,40 +16,38 @@
 
 
 {% extends "welcome/base.html" %}
+{%load static%}
+{% static 'welcome/js/dowCandle.js' %}
+{% static 'welcome/js/heatmap.js' %}
 {% block content %}
 
 <html>
 <head></head>
  <body>
-    <div style="width: 100%; display: table;">
+   <div>
 
-        <div style="display: table-row; height: 100px;"><!--- ROW BEGIN --->
-            <div style="width: 33%; display: table-cell;">
-                Left Upper Graph
-            </div>
-            <div style="display: table-cell;">
-                Center Upper Graph
-            </div>
-            <div style="display: table-cell;">
-                Right Upper Graph
-            </div>
+     {% if graph %}
+     <div style="width:600;height:500">
+       {{ graph|safe }}
+     </div>
+     {% endif %}
         </div><!--- ROW DONE --->
 
         <div style="display: table-row; height: 100px;"><!--- ROW BEGIN --->
-          <div style="width: 33%; display: table-cell;">
-              Left Bottom Graph
+          <div style="width: 1%; display: table-cell;">
+
           </div>
           <div style="display: table-cell;">
-              Center Bottom Graph
+
           </div>
           <div style="display: table-cell;">
-              Right Bottom Graph
+
           </div>
         </div><!--- ROW DONE --->
 
         <div style="display: table-row; height: 100px;"> <!--- ROW BEGIN --->
-          <div style="width: 45%; display: table-cell;">
-              Left Table
+          <div style="width: 30%; display: table-cell;">
+              <h2>EARNERS</h2>
                   <table id="earners" class="display">
                       <thead>
                           <tr>
@@ -78,10 +76,10 @@
                       </tbody>
                   </table>
           </div>
-          <div style = "width: 10%; display: table-cell:">
+          <div style = "width: 5%; display: table-cell:">
           </div>
-          <div style="width: 45%; display: table-cell;">
-              Right Table
+          <div style="width: 30%; display: table-cell;">
+              <h2>LOSERS</h2>
               <table id="losers" class="display">
                   <thead>
                       <tr>
@@ -109,14 +107,12 @@
                     {%endfor%}
                   </tbody>
               </table>
-          </div>
-        </div> <!--- ROW DONE --->
-
-
-        <div style="display: table-row; height: 100px;"> <!--- ROW BEGIN --->
-          <div style="width: 45%; display: table-cell;">
-              Left Table
-                  <table id="volatiles" class="display">
+            </div>
+            <div style = "width: 5%; display: table-cell:">
+            </div>
+              <div style="width: 30%; display: table-cell;">
+                  <h2>FINANCIAL</h2>
+                  <table id="financial" class="display">
                       <thead>
                           <tr>
                               <th>Ticker</th>
@@ -128,7 +124,7 @@
                       </thead>
                       <tbody>
                         <!--- need for blocks to retrieve data here --->
-                        {%for stock in volatiles%}
+                        {%for stock in financial%}
                           <tr>
                               <td>{{ stock.ticker }}</td>
                               <td>{{ stock.volume }}</td>
@@ -143,11 +139,52 @@
                         {%endfor%}
                       </tbody>
                   </table>
+              </div>
+            </div> <!--- ROW DONE --->
+          </div>
+        </div> <!--- ROW DONE --->
+
+
+        <div style="display: table-row; height: 100px;"> <!--- ROW BEGIN --->
+          <div style="width: 45%; display: table-cell;">
+              <h2>IPO List</h2>
+              <h7 style = "color:grey;">(Initial Public Offering)</h7>
+                  <table id="volatiles" class="display">
+                      <thead>
+                          <tr>
+                              <th>Ticker</th>
+                              <th>Company</th>
+                              <th>Exchange</th>
+                              <th>Date</th>
+                              <th>Price Range</th>
+                              <th>Price</th>
+                              <th>Currency</th>
+                              <th>Shares</th>
+                              <th>Action</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                        <!--- need for blocks to retrieve data here --->
+                        {%for stock in ipos%}
+                          <tr>
+                              <td>{{ stock.symbol }}</td>
+                              <td>{{ stock.company }}</td>
+                              <td>{{ stock.exchange }}</td>
+                              <td>{{ stock.date }}</td>
+                              <td>{{ stock.range }}</td>
+                              <td>{{ stock.price }}</td>
+                              <td>{{ stock.currency }}</td>
+                              <td>{{ stock.shares }}</td>
+                              <td>{{ stock.action }}</td>
+                          </tr>
+                        {%endfor%}
+                      </tbody>
+                  </table>
           </div>
           <div style = "width: 10%; display: table-cell:">
           </div>
           <div style="width: 45%; display: table-cell;">
-              Right Table
+              <h2>LONGS</h2>
               <table id="steady" class="display">
                   <thead>
                       <tr>
@@ -176,7 +213,42 @@
                   </tbody>
               </table>
           </div>
+          <div style="width: 45%; display: table-cell;">
+              <h2>TECHNOLOGY</h2>
+                  <table id="tech" class="display">
+                      <thead>
+                          <tr>
+                              <th>Ticker</th>
+                              <th>Volume</th>
+                              <th>High</th>
+                              <th>Low</th>
+                              <th>(%)</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                        <!--- need for blocks to retrieve data here --->
+                        {%for stock in tech%}
+                          <tr>
+                              <td>{{ stock.ticker }}</td>
+                              <td>{{ stock.volume }}</td>
+                              <td>{{ stock.high }}</td>
+                              <td>{{ stock.low }}</td>
+                              {% if stock.change > 0 %}
+                              <td style="color:green;">{{stock.change}}</td>
+                              {% else %}
+                              <td style="color:red;">{{stock.change}}</td>
+                              {%endif%}
+                          </tr>
+                        {%endfor%}
+                      </tbody>
+                  </table>
+          </div>
         </div> <!--- ROW DONE --->
+
+
+
+
+
 
 
     </div>
@@ -200,12 +272,22 @@
     "dom": 'tp',
     pageLength:10
   });
+  var volatiles = $('#tech').DataTable({
+    "dom": 'tp',
+    pageLength:10
+  });
+  var steady = $('#financial').DataTable({
+    "dom": 'tp',
+    pageLength:10
+  });
 
   $(document).ready( function () {
   earners;
   losers;
   volatiles;
   steady;
+  tech;
+  financial;
   });
 
 </script>>

@@ -4,10 +4,25 @@ from .models import Post
 from .models import Candle
 from .models import Stock
 from .models import StockDatabase
-
+from .models import Profile
+from .models import SimpleStock
+from .models import StockHandle
+from .models import moment
+from .models import IPO
+from .models import CryptoStock
+from .models import Portfolio
+from .models import StockAsset
 
 # Register models here.
 admin.site.register(Post)
 admin.site.register(Candle)
 admin.site.register(Stock)
 admin.site.register(StockDatabase)
+admin.site.register(Profile)
+admin.site.register(SimpleStock)
+admin.site.register(StockHandle)
+admin.site.register(moment)
+admin.site.register(IPO)
+admin.site.register(CryptoStock)
+admin.site.register(Portfolio)
+admin.site.register(StockAsset)

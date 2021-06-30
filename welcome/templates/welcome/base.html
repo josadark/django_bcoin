@@ -2,6 +2,85 @@
 <!DOCTYPE html>
 <html>
 <head>
+<style>
+.nav-item{
+  transition : transform 200ms;
+}
+.nav-item:hover{
+  transform : scale(1.1);
+  background-color : maroon;
+}
+
+.scroll-left {
+ height: 30px;
+ overflow: hidden;
+ position: relative;
+ top:-33px;
+ background: black;
+ /*color: white;*/
+ border: 3px solid #400815;
+}
+.scroll-left p {
+ position:  relative;
+ width: 1000%;
+ height: 100%;
+ margin: 0;
+ line-height: 30px;
+ text-align: left;
+ /* Starting position */
+ -moz-transform:translateX(0%);
+ -webkit-transform:translateX(0%);
+ transform:translateX(0%);
+ /* Apply animation to this element */
+ -moz-animation: scroll-left 100s linear infinite;
+ -webkit-animation: scroll-left 100s linear infinite;
+ animation: scroll-left 100s linear infinite;
+}
+/* Move it (define the animation) */
+@-moz-keyframes scroll-left {
+ 0%   { -moz-transform: translateX(0%); }
+ 100% { -moz-transform: translateX(-40%); }
+}
+@-webkit-keyframes scroll-left {
+ 0%   { -webkit-transform: translateX(0%); }
+ 100% { -webkit-transform: translateX(-40%); }
+}
+@keyframes scroll-left {
+ 0%   {
+ -moz-transform: translateX(0%); /* Browser bug fix */
+ -webkit-transform: translateX(0%); /* Browser bug fix */
+ transform: translateX(0%);
+ }
+ 100% {
+ -moz-transform: translateX(-40%); /* Browser bug fix */
+ -webkit-transform: translateX(-40%); /* Browser bug fix */
+ transform: translateX(-40%);
+ }
+}
+</style>
+
+{%if volatiles%}
+<div class="scroll-left">
+  <p>
+  {% for stock in volatiles %}
+    {% if stock.change > 0%}
+    <em style="color:lightgreen;">{{stock.ticker}} {{stock.change}} %</em>
+    {% elif stock.change < 0%}
+    <em style="color:red;">{{stock.ticker}} {{stock.change}} %</em>
+    {%else%}
+    <em>{{stock.ticker}} {{stock.change}} %</em>
+    {%endif%}
+    <em>~</em>
+  {% endfor %}
+</p>
+</div>
+{%endif%}
+
+
+
+
+
+
 
     <!-- Required meta tags -->
     <meta charset="utf-8">
@@ -10,7 +89,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-    <link rel="stylesheet" type="text/css" href="{% static 'welcome/main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'welcome/css/main.css' %}">
 
     {% if title %}
         <title>Market Tracker - {{ title }}</title>
@@ -28,18 +107,29 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
-              <a class="nav-item nav-link" href="{% url 'welcome-home' %}">Home</a>
+              <!---<a class="nav-item nav-link" href="{% url 'welcome-home' %}">Home</a>--->
               <!--<a class="nav-item nav-link" href="{% url 'welcome-about' %}">Screener</a>-->
-              <a class="nav-item nav-link" href="{% url 'welcome-demo' %}">Screener</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-about' %}">US Screener</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-about' %}">CHN Screener</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-crypto' %}">Crypto Screener</a>
               <!--<a class="nav-item nav-link" href="{% url 'welcome-about' %}">Groups</a>-->
-              <a class="nav-item nav-link" href="{% url 'welcome-about' %}">Maps</a>
-              <a class="nav-item nav-link" href="{% url 'welcome-about' %}">Portfolio</a>
-              <a class="nav-item nav-link" href="{% url 'welcome-about' %}">Groups</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-maps' %}">Maps</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-demo' %}">Groups</a>
+              {%if user.is_authenticated%}
+              <a class="nav-item nav-link" >Watchlist</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-portfolio' %}">Portfolios</a>
+              {%endif%}
             </div>
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
-              <a class="nav-item nav-link" href="/admin">Login</a>
+              {%if user.is_authenticated%}
+              <a class="nav-item nav-link" >Hello, {{user.username}}</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-logout' %}">Logout</a>
+              {%else%}
+              <a class="nav-item nav-link" href="{% url 'welcome-login'%}">Login</a>
               <a class="nav-item nav-link" href="#">Register</a>
+              <a class="nav-item nav-link" href="/admin"> .</a>
+              {%endif%}
             </div>
           </div>
         </div>
@@ -50,10 +140,14 @@
         <div class="col-md-8">
           {% block content %}{% endblock %}
         </div>
-    
+
         </div>
       </div>
     </main>
+
+
+
+
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

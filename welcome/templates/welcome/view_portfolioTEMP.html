@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+{% extends "welcome/base.html" %}
+
+
+
+a.button {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+
+    text-decoration: none;
+    color: initial;
+}
+
+
+
+{% block content %}
+{% if user.is_authenticated %}
+<h1>{{portfolio.title}}</h1>
+<p>{{portfolio.description}}</p>
+{%for stock in stocks%}
+<h3>{{stock.ticker}}</h3>
+<h5>{{stock.quantity}}</h5>
+{%endfor%}
+
+<a href="http://localhost:8000/edit_portfolio/{{portfolioID}}/" class="button">Add Asset</a>
+<br>
+<a href="http://localhost:8000/portfolio/" class="button">Return</a>
+
+
+
+
+
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>JQuery Datatable</title>
+  </head>
+  <body>
+    <table id="table_id" class="display">
+        <thead>
+            <tr>
+                <th>Asset</th>
+                <th>Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+          <!--- need for blocks to retrieve data here --->
+          {%for portfolio in stocks%}
+            <tr>
+                <td>{{ portfolio.ticker }}</td>
+                <td>{{ portfolio.quantity }}</td>
+            </tr>
+          {%endfor%}
+        </tbody>
+    </table>
+
+    <<script
+    type="text/javascript">
+
+
+    var table = $('#table_id').DataTable({
+      "dom": 'lrtip',
+      "scrollable":'True',
+    });
+
+    $('#table_id tbody').on('click', 'tr', function () {
+        var data = table.row( this ).data();
+        //alert( 'You clicked on '+data[0]+'\'s row' );
+        window.location = "http://localhost:8000/view_portfolio/"+data[0];
+    } );
+
+
+    $(document).ready( function () {
+    table;
+    });
+
+    // Event listener to the two range filtering inputs to redraw on input
+    $('#minVol, #maxVol, #minOpen, #maxOpen, #minClose, #maxClose, #maxChange, #minChange, #ticker').keyup( function() {
+      table.draw();
+    } );
+
+
+
+    </script>>
+  </body>
+</html>>
+
+
+
+
+{%else%}
+You must be logged into an active account to access portfolios
+{%endif%}
+{% endblock %}

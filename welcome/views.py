@@ -1,35 +1,252 @@
+import csv
 from django.shortcuts import render
 from .models import Post
 from .models import Stock
 from .models import Candle
 from .models import StockDatabase
+from .models import Profile
+from .models import SimpleStock
+from .models import StockHandle
+from .models import moment
+from .models import IPO
+from .models import CryptoStock
+from .models import StockAsset
+from .models import Portfolio
+
+from .forms import PortfolioForm
+from .forms import AssetForm
+
 # plotly imports
+import plotly.offline as opy
 from plotly.offline import plot
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 #panda imports for csv reading
 import pandas as pd
 from datetime import datetime
 
+#import for login
+from django.contrib.auth import authenticate, login
+from django.contrib.auth import logout
+
+#import for Redirect
+from django.shortcuts import redirect
+#import for grabbing csv from webserver self
+from django.http import HttpResponse
+from background_task import background
+
+@background(schedule=1)
+def notify():
+    print("the croncops on patrol!")
+    saveHistorical()
+    print("done.")
+    saveDaily()
+    return
+
+def saveCryptoDaily():
+        CryptoStock.objects.all().delete()
+        df = pd.read_csv('newcrypto.csv')
+        df = df.fillna(0)
+        counter=0
+        #Date,Open,High,Low,Close,Adj Close,Volume,ticker
+        for i in df.itertuples():
+            #print(i[1])
+            #date_time = datetime.strptime(i[1], '%m/%d/%Y')
+            #stockRetrieve = Stock(date=date_time,ticker=i[8],open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,2))
+            stockRetrieve = CryptoStock(open = i[2], high = i[3], low = i[4], close = i[5], adjclose = i[6], volume = i[7], ticker = i[8], change=round(((i[2]-i[5])/i[2]),2))
+            stockRetrieve.save()
+        return
+
+
+def saveDaily():
+        Stock.objects.all().delete()
+        df = pd.read_csv('FinViz.csv')
+        df = df.fillna(0)
+        counter=0
+        #Date,Open,High,Low,Close,Adj Close,Volume,ticker
+        for i in df.itertuples():
+            #print(i[1])
+            #date_time = datetime.strptime(i[1], '%m/%d/%Y')
+            #stockRetrieve = Stock(date=date_time,ticker=i[8],open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,2))
+            stockRetrieve = Stock(index = buffer(i[1]), ticker=i[3],company=i[4],sector=i[5],industry=i[6],country=i[7],marketcap=buffer(i[8]),pricetoearnings=buffer(i[9]),price=buffer(i[10]),change=buffer(i[11]),volume=buffer(i[12]),dividend=buffer(i[13]),returnonassets=buffer(i[14]),returnonequity=buffer(i[15]),returnoninvestment=buffer(i[16]),currentR=buffer(i[17]),quickR=buffer(i[18]),longdebtequity=buffer(i[19]),debtequity=buffer(i[20]),grossm=buffer(i[21]),operm=buffer(i[22]),profit=buffer(i[23]),earnings=buffer(i[24]),fwdpe=buffer(i[33]),peg=buffer(i[34]),pricetosales=buffer(i[35]),pricetobook=buffer(i[36]),partcert=buffer(i[37]),pfcf=buffer(i[38]),EPSthisyear=buffer(i[39]),EPSnextyear=buffer(i[40]),EPSpast5year=buffer(i[41]), EPSnext5year=buffer(i[42]), outstanding=buffer(i[49]), float=buffer(i[50]),insiderOwn=buffer(i[51]),insiderTrans=buffer(i[52]),instOwn=buffer(i[53]),instTrans=buffer(i[54]),floatshort=buffer(i[55]),shortratio=buffer(i[56]),averagevolume=buffer(i[57]),perfweek=buffer(i[62]),perfmonth=buffer(i[63]),perfquart=buffer(i[64]),perfhalf=buffer(i[65]),perfyear=buffer(i[66]),perfytd=buffer(i[67]),volatilityw=buffer(i[68]),volatilitym=buffer(i[69]),recom=buffer(i[70]),relativeVolume=buffer(i[72]),beta=buffer(i[77]),ATR=buffer(i[78]),SMA20=buffer(i[79]),SMA50=buffer(i[80]),SMA200=buffer(i[81]),high52=buffer(i[82]),low52=buffer(i[83]),RSI=buffer(i[84]),fromopen=buffer(i[87]),Gap=buffer(i[88]))
+            stockRetrieve.save()
+        return
+
+def saveIPO():
+        IPO.objects.all().delete()
+        df = pd.read_csv('IPO.csv')
+        df = df.fillna(0)
+        counter=0
+        #Date,Open,High,Low,Close,Adj Close,Volume,ticker
+        for i in df.itertuples():
+            #print(i[1])
+            #date_time = datetime.strptime(i[1], '%m/%d/%Y')
+            #stockRetrieve = Stock(date=date_time,ticker=i[8],open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,2))
+            stockRetrieve = IPO(symbol = i[1], company = i[2], exchange = i[3], date = i[4], range = i[5], price = i[6], currency = i[7], shares = i[8], actions = i[9])
+            stockRetrieve.save()
+        return
+
+
+
+def saveHistorical():
+#            print('cronjob is indiana jones!')
+            moment.objects.all().delete()
+            StockHandle.objects.all().delete()
+#            print('cronjob is on a killing spree!')
+#            df = pd.read_csv('test.csv')
+#            print('cronjob is literate!')
+#            df = df.fillna(0)
+#            previousStock = 'TWOU'
+#            thisStock='TWOU'
+#            aStockHandle = StockHandle(ticker='TWOU')
+#            aStockHandle.save()
+#            for i in df.itertuples():
+#                thisStock= i[8]
+#                print(thisStock)
+#                if thisStock != previousStock:
+#                    aStockHandle.save()
+#                    aStockHandle = StockHandle(ticker=i[8])
+#                    aStockHandle.save()
+#                    previousStock=thisStock
+#                print('still thy beating heart, says cronjob!')
+#                if True:
+#                    print('its a cronjob not a conjob')
+#                    date_time = datetime.strptime(i[1], '%m/%d/%Y')
+#                    stockRetrieve = moment(date=date_time,open=round(float(i[2]),2),high=round(float(i[3]),2),low=round(float(i[4]),2),close=round(float(i[5]),2),adjclose=round(float(i[6]),2),volume=round(float(i[7]),2))
+#                    stockRetrieve.save()
+#                    aStockHandle.moments.add(stockRetrieve)
+#                    print('stored a moment!')
+#                print('did i store a moment?')
+
+def logout_view(request):
+    logout(request)
+    return redirect('welcome-home')
+    return render(request, 'welcome/logout.html')
+
+def login_view(request):
+    username = password = ''
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        login(request, user)
+        print("user auth")
+        return redirect('welcome-home')
+    else:
+        ...
+        #print("failed login attempt by "+username+" with "+password)
+
+    return render(request, 'welcome/login.html')
+
+def portfolio_view(request):
+    isLoggedIn = request.user.is_authenticated
+    portfolios=[]
+    if(isLoggedIn):
+        portfolio = request.user.profile.portfolio.all()
+        portfolio = Portfolio.objects.all()
+        for i in portfolio:
+            portfolios.append(i)
+            print('loaded!')
+    context = {'isLoggedIn':isLoggedIn, 'portfolios':portfolios}
+    return render(request, 'welcome/portfolio.html', context)
+
+def create_portfolio_view(request):
+        form = PortfolioForm(request.POST or None)
+        if form.is_valid():
+            form.save()
+            form = PortfolioForm()
+            print("form saved!")
+        else:
+            print("invalid form?")
+        return render(request, 'welcome/create_portfolio.html', {'form': form})
+
+def edit_portfolio(request, portfolioID):
+        port = Portfolio.objects.get(title=portfolioID)
+        form = AssetForm(request.POST or None)
+        if form.is_valid():
+            #form.save(commit=False)
+            form.Portfolio = port
+            tempform = form.save(commit = False)
+            tempform.portfolio = port
+            tempform.save()
+            form = AssetForm()
+            print("form saved!")
+        else:
+            print("invalid form?")
+        context = {'portfolio':Portfolio.objects.get(title=portfolioID), 'stocks':Portfolio.objects.get(title=''+portfolioID).stockasset_set.all(), 'form':form, 'portfolioID':portfolioID}
+        return render(request, 'welcome/edit_portfolio.html', context)
+
+def view_portfolio(request, portfolioID):
+    portfolio = Portfolio.objects.get(title=''+portfolioID)
+    stocks = portfolio.stockasset_set.all()
+    for stock in stocks:
+        print('stock')
+    context = {'portfolio':portfolio,
+    'portfolioID':portfolioID, 'assets':stocks}
+    return render(request, 'welcome/view_portfolio.html', context)
+
+def buffer(subject):
+    subjects=str(subject)
+    if subjects == '-':
+        return 0
+    if '%' in subjects:
+        return float(subjects.split("%")[0])
+    elif 'M' in subjects:
+        return float(subjects.split('M')[0])*1000000
+    elif 'B' in subjects:
+        return float(subjects.split('B')[0])*100000000
+    elif 'K' in subjects:
+        return float(subjects.split('K')[0])*1000
+    return float(subjects)
+
+def catchHyphens(subject): #maybe obs
+    if subject == '-':
+        return ''
+
+def removePerc(x):
+    if(x == '-'):
+        return 0
+    return float(x.strip('%'))
+
+def fixVol(x):
+
+    if(x == '-'):
+        return 1
+    x=buffer(x)
+    return float(x)
+
 def home(request):
-    Stock.objects.all().delete()
-    df = pd.read_csv('outfile.csv')
-    df = df.fillna(0)
     counter=0
-    #Date,Open,High,Low,Close,Adj Close,Volume,ticker
-    for i in df.itertuples():
-        quickChange = (abs(i[5]-i[2])/((i[5]+i[2])/2))*100
-        if(i[2]>i[5]):
-            quickChange=quickChange*-1
-        print(i[1])
-        date_time = datetime.strptime(i[1], '%m/%d/%Y')
-        stockRetrieve = Stock(date=date_time,ticker=i[8],open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,2))
-        stockRetrieve.save()
+    df = pd.read_csv('FinViz.csv', converters={'Change_x':removePerc, 'Market Cap_x':fixVol})
+    df.dropna(inplace=True)
+
+    rangeBounding = [-1.5,1.5]
+    fig = px.treemap(df,
+                 path=['Sector', 'Industry', 'Ticker'],
+                 values='Market Cap_x',
+                 color='Change_x',
+                 color_continuous_scale='rdylgn',
+                 maxdepth=2,
+                 branchvalues='total',
+                 range_color=rangeBounding,
+                 color_continuous_midpoint=0,
+                 width=700,
+                 height=450
+                )
+    fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
+    graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+
     earners = []
     losers = []
     volatile = []
     steady = []
+    tech = []
+    financial = []
+    IPOlist = []
+    news = ''''''
     for stock in Stock.objects.all():
+        news=news+stock.ticker+' '+str(stock.change)+' | '
         if (stock.change > 1):
             earners.append(stock)
         elif (stock.change < -1):
@@ -38,34 +255,85 @@ def home(request):
             volatile.append(stock)
         elif(abs(stock.change)<.5) :
             steady.append(stock)
+        if 'Tech' in stock.sector:
+             tech.append(stock)
+        if 'Fin' in stock.sector:
+            financial.append(stock)
+
+    for stock in IPO.objects.all():
+        IPOlist.append(stock)
 
     context = {
         'stocks':Stock.objects.all(),
         'earners':earners,
         'losers':losers,
         'volatiles':volatile,
-        'steady':steady
-
+        'steady':steady,
+        'tech':tech,
+        'financial':financial,
+        'ipos':IPOlist,
+        'news':news,
+        'graph':graphdiv
     }
 
 
     return render(request, 'welcome/home.html',context)
 
 
-def about(request):
+def stockview(request, stockID):
+    context = {
+        'stockID':stockID,
+        'stock':Stock.objects.get(ticker=stockID)
+    }
+    return render(request, 'welcome/stockview.html', context)
 
-    Stock.objects.all().delete()
-    df = pd.read_csv('outfile.csv')
+def cryptoview(request, stockID):
+    context = {
+        'stockID':stockID,
+        'stock':CryptoStock.objects.get(ticker=stockID)
+    }
+    return render(request, 'welcome/cryptoview.html', context)
+
+def grabcsv(request, csvID):
+    print('GRABBING FILE!')
+    print(csvID)
+    response = HttpResponse(
+        content_type='text/csv',
+        headers={'Content-Disposition': 'attachment; filename="somefilename.csv"'},
+    )
+    writer = csv.writer(response)
+    print(csvID)
+    df = pd.read_csv('landingpad/Crypto/'+csvID+'.csv')
     df = df.fillna(0)
     counter=0
     #Date,Open,High,Low,Close,Adj Close,Volume,ticker
+    writer.writerow(['index','Date','Open','High','Low','Close','Adj Close','Volume'])
     for i in df.itertuples():
-        quickChange = (abs(i[5]-i[2])/((i[5]+i[2])/2))*100
-        if(i[2]>i[5]):
-            quickChange=quickChange*-1
-        date_time = datetime.strptime(i[1], '%m/%d/%Y')
-        stockRetrieve = Stock(date = date_time, ticker=i[8],open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,4))
-        stockRetrieve.save()
+        writer.writerow(i)
+    return response
+    #return render(request, 'welcome/home.html', context)
+
+
+def about(request):
+
+    #saveCryptoDaily()
+    #saveIPO()
+
+    #Stock.objects.all().delete()
+    #df = pd.read_csv('outfile.csv')
+    #df = df.fillna(0)
+    #counter=0
+    #Date,Open,High,Low,Close,Adj Close,Volume,ticker
+    #for i in df.itertuples():
+    #    if((i[5]+i[2])/2==0):
+    #        quickChange=1
+    #    else:
+    #        quickChange = (abs(i[5]-i[2])/((i[5]+i[2])/2))*100
+    #    if(i[2]>i[5]):
+    #        quickChange=quickChange*-1
+    #    date_time = datetime.strptime(i[1], '%m/%d/%Y')
+    #    stockRetrieve = Stock(date = date_time, ticker=i[8],open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,4))
+    #    stockRetrieve.save()
 
     dow = pd.read_csv('DOW.csv')
     dow = dow.fillna(0)
@@ -76,7 +344,7 @@ def about(request):
         if(i[2]>i[5]):
             quickChange=quickChange*-1
         date_time = datetime.strptime(i[1], '%Y-%m-%d')
-        stockRetrieve = Stock(date = date_time, ticker='DOW',open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,4))
+        stockRetrieve = SimpleStock(date = date_time, ticker='DOW',open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,4))
         dowlist.append(stockRetrieve)
 
 
@@ -87,229 +355,85 @@ def about(request):
     }
     return render(request, 'welcome/about.html',context)
 
+def crypto(request):
+
+    dow = pd.read_csv('DOW.csv')
+    dow = dow.fillna(0)
+    dow.iloc[::-1]
+    dowlist = []
+    for i in dow.itertuples():
+        quickChange = (abs(i[5]-i[2])/((i[5]+i[2])/2))*100
+        if(i[2]>i[5]):
+            quickChange=quickChange*-1
+        date_time = datetime.strptime(i[1], '%Y-%m-%d')
+        stockRetrieve = SimpleStock(date = date_time, ticker='DOW',open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,4))
+        dowlist.append(stockRetrieve)
+
+
+    context = {
+        'stocks':CryptoStock.objects.all(),
+        'DOW':dowlist
+
+    }
+    return render(request, 'welcome/crypto.html',context)
+
+
+
+
+
+
 # Create your views here.
 
 
 ## plotly example
 
+
 def demo_plot_view(request):
-    """
-    View demonstrating how to display a graph object
-    on a web page with Plotly.
-    """
+    df = pd.read_csv('FinViz.csv')
+    df.dropna(inplace=True)
 
-    # Fetching data for plotly
-    df = pd.read_csv('ETH-USD.csv')
-
-    # List of graph objects for figure.
-    # Each object will contain on series of data.
-    graphs = []
-    figure = go.Candlestick(
-                x=df['Date'],
-                open=df['Open'],
-                high=df['High'],
-                low=df['Low'],
-                close=df['Close'],
+    fig = px.treemap(df,
+                 path=['Sector', 'Industry'],
+                 values='No._x',
+                 color='No._x'
                 )
-    graphs.append(
-        figure
-    )
-    # Setting layout of the figure.
-    layout = {
-        'title': 'Etherium (ETH)',
-        'xaxis_title': 'Date',
-        'yaxis_title': 'USD per Unit',
-        'height': 420,
-        'width': 560,
-    }
-    # Getting HTML needed to render the plot.
-    plot_div = plot({'data': graphs, 'layout': layout},
-                    output_type='div')
-    figure = go.Bar(x=df['Date'], y=df['Volume'])
-    layout={'xaxis_title':'Date','yaxis_title':'Market Volume'}
-
-    graphs = []
-    figure = go.Table(
-    header=dict(values=list(df.columns),
-                fill_color='bisque',
-                align='left'),
-    cells=dict(values=[df.Date, df.Open, df.High, df.Low, df.Close, df.AdjClose, df.Volume],
-               fill_color='white',
-               align='left'))
-    graphs.append(figure)
-    table_div = plot({'data': graphs,},
-                        output_type='div')
 
 
-    #SECOND DIV
-    df = pd.read_csv("BTC-USD.csv")
+    div = opy.plot(fig, auto_open=False, output_type='div')
 
-    # List of graph objects for figure.
-    # Each object will contain on series of data.
-    graphs = []
-    figure = go.Candlestick(
-                x=df['Date'],
-                open=df['Open'],
-                high=df['High'],
-                low=df['Low'],
-                close=df['Close'],
-                )
-    graphs.append(
-        figure
-    )
-    # Setting layout of the figure.
-    layout = {
-        'title': 'Bitcoin (BTC)',
-        'xaxis_title': 'Date',
-        'yaxis_title': 'USD per Unit',
-        'height': 420,
-        'width': 560,
-    }
-    # Getting HTML needed to render the plot.
-    plot_div2 = plot({'data': graphs, 'layout': layout},
-                    output_type='div')
+    context = {'graph':div}
 
-    graphs = []
-    figure = go.Table(
-    header=dict(values=list(df.columns),
-                fill_color='bisque',
-                align='left'),
-    cells=dict(values=[df.Date, df.Open, df.High, df.Low, df.Close, df.AdjClose, df.Volume],
-               fill_color='white',
-               align='left'))
-    graphs.append(figure)
-    table_div2 = plot({'data': graphs,},
-                        output_type='div')
-
-
-    #SECOND DIV DONE
-
-    #THIRD DIV
-
-    df = pd.read_csv("USDT-USD.csv")
-
-    # List of graph objects for figure.
-    # Each object will contain on series of data.
-    graphs = []
-    figure = go.Candlestick(
-                x=df['Date'],
-                open=df['Open'],
-                high=df['High'],
-                low=df['Low'],
-                close=df['Close'],
-                )
-    graphs.append(
-        figure
-    )
-    # Setting layout of the figure.
-    layout = {
-        'title': 'Tether (USDT)',
-        'xaxis_title': 'Date',
-        'yaxis_title': 'USD per Unit',
-        'height': 420,
-        'width': 560,
-    }
-    # Getting HTML needed to render the plot.
-    plot_div3 = plot({'data': graphs, 'layout': layout},
-                    output_type='div')
-
-    graphs = []
-    figure = go.Table(
-    header=dict(values=list(df.columns),
-                fill_color='bisque',
-                align='left'),
-    cells=dict(values=[df.Date, df.Open, df.High, df.Low, df.Close, df.AdjClose, df.Volume],
-               fill_color='white',
-               align='left'))
-    graphs.append(figure)
-    table_div3 = plot({'data': graphs,},
-                        output_type='div')
-
-
-
-    #THIRD DIV DONE
-
-    #SUBPLOT TEST
-    df = pd.read_csv("USDT-USD.csv")
-    figure = make_subplots(rows=3, cols=1)
-
-    candlefig = go.Candlestick(
-                x=df['Date'],
-                open=df['Open'],
-                high=df['High'],
-                low=df['Low'],
-                close=df['Close'],
-                )
-    volumefig = go.Bar(x=df['Date'],y=df['Volume'])
-    """tablefig = go.Table(
-    header=dict(values=list(df.columns),
-                fill_color='bisque',
-                align='left'),
-    cells=dict(values=[df.Date, df.Open, df.High, df.Low, df.Close, df.AdjClose, df.Volume],
-               fill_color='white',
-               align='left'))"""
-
-    figure.add_trace(candlefig,row=1, col=1)
-    figure.add_trace(volumefig,row=2, col=1)
-    #figure.add_trace(tablefig,row=3, col=1)
-    figure.update_layout(title_text='TICKER')
-    figure.update_xaxes(title_text='Date',row=1,col=1)
-    figure.update_xaxes(title_text='Date',row=2,col=1)
-    #figure.update_xaxes(title_text='Data Table',row=3,col=1)
-    figure.update_yaxes(title_text='USD per Unit',row=1,col=1)
-    figure.update_yaxes(title_text='Market Volume',row=2,col=1)
-    #figure.update_yaxes(title_text='Data Table',row=3,col=1)
-
-    plotPage = plot({'data': figure,},
-                        output_type='div')
-
-    #SUBPLOT TEST DONE
-
-    #big page TEST
-    """
-    files = [
-        "ADA-USD.csv",
-        "BNB-USD.csv",
-        "BTC-USD.csv",
-        #"DOGE-USD.csv",
-        #"ETH-USD.csv",
-        #"USDT-USD.csv"
-        ]
-    candleCard = make_subplots(rows=len(files)+1, cols=1,subplot_titles=files)
-    c = 0
-    for i in files:
-        df = pd.read_csv(files[c])
-        candlefig = go.Candlestick(
-                    x=df['Date'],
-                    open=df['Open'],
-                    high=df['High'],
-                    low=df['Low'],
-                    close=df['Close'],
-                    )
-        candleCard.update_layout(xaxis_rangeslider_visible=False,height=1700)
-        candleCard.add_trace(candlefig,row=c+1,col=1)
-        #candleCard.update_yaxes(title_text='Price Per '+files[c],row=c,col=1)
-        #candleCard.update_xaxes(title_text=''+files[c],row=c,col=1)
-        c=c+1
-    plotCard = plot({'data': candleCard,},
-                        output_type='div')
-                        """
-    #big page test done
-
-
-    #applying the html to the context for rendering
-    context ={
-    'plot_div': plot_div,
-    'plot_div2': plot_div2,
-    'table_div':table_div,
-    'table_div2':table_div2,
-    'plot_div3':plot_div3,
-    'table_div3':table_div3,
-    'plotPage':plotPage,
-    #'plotCard':plotCard
-    }
-
+    #fig.show()
 
 
     return render(request, 'welcome/demo-plot.html',
                   context)
+
+def maps(request):
+    df = pd.read_csv('FinViz.csv', converters={'Change_x':removePerc, 'Market Cap_x':fixVol})
+    df.dropna(inplace=True)
+
+    rangeBounding = [-1.5,1.5]
+    fig = px.treemap(df,
+                 path=['Sector', 'Industry', 'Ticker'],
+                 labels='Change_x',
+                 values='Market Cap_x',
+                 color='Change_x',
+                 color_continuous_scale='rdylgn',
+                 maxdepth=2,
+                 branchvalues='total',
+                 range_color=rangeBounding,
+                 color_continuous_midpoint=0,
+                 width=1600,
+                 height=800
+                )
+
+
+
+    fig.update_layout(margin = dict(t=0, l=0, r=0, b=0), paper_bgcolor="#fafafa")
+    graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+
+    context = {
+    'graph':graphdiv
+    }
+    return render(request, 'welcome/maps.html', context)

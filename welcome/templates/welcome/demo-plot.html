@@ -11,12 +11,12 @@
 
 
     {% block content %}
-            {{ plot_div | safe}}
-            {{table_div | safe}}
-            {{plot_div2 | safe}}
-            {{table_div2 | safe}}
-            {{plot_div3|safe}}
-            {{table_div3|safe}}
-            {{plotPage|safe}}
-            {{plotCard|safe}}
+
+      {% if graph %}
+      <div style="width:1200;height:1000">
+      {{ graph|safe }}
+      </div>
+{% endif %}
+
+
     {% endblock content %}

@@ -18,6 +18,17 @@
 {% extends "welcome/base.html" %}
 {% block content %}
 
+
+
+
+
+
+<!--- --->
+
+
+
+
+
 <!--- amcharts begin --->
 <!-- Styles -->
 <style>
@@ -35,211 +46,172 @@
 
 <!-- Chart code -->
 <script>
-am4core.ready(function() {
+  am4core.ready(function() {
 
-// Themes begin
-am4core.useTheme(am4themes_animated);
-// Themes end
+  // Themes begin
+  am4core.useTheme(am4themes_animated);
+  // Themes end
 
-// Create chart
-var chart = am4core.create("chartdiv", am4charts.XYChart);
-chart.padding(0, 15, 0, 15);
+  // Create chart
+  var chart = am4core.create("chartdiv", am4charts.XYChart);
+  chart.padding(0, 15, 0, 15);
 
-// Load data
-chart.dataSource.url = "https://sendeyo.com/en/c08c5bba65";
-chart.dataSource.parser = new am4core.CSVParser();
-chart.dataSource.parser.options.useColumnNames = true;
-chart.dataSource.parser.options.reverse = true;
+  // Load data
+  chart.dataSource.url = "http://localhost:8000/grabcsv/AAN";
+  chart.dataSource.parser = new am4core.CSVParser();
+  chart.dataSource.parser.options.useColumnNames = true;
+  chart.dataSource.parser.options.reverse = false;
 
-// the following line makes value axes to be arranged vertically.
-chart.leftAxesContainer.layout = "vertical";
+  // the following line makes value axes to be arranged vertically.
+  chart.leftAxesContainer.layout = "vertical";
 
-// uncomment this line if you want to change order of axes
-//chart.bottomAxesContainer.reverseOrder = true;
+  // uncomment this line if you want to change order of axes
+  //chart.bottomAxesContainer.reverseOrder = true;
 
-var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-dateAxis.renderer.grid.template.location = 0;
-dateAxis.renderer.ticks.template.length = 8;
-dateAxis.renderer.ticks.template.strokeOpacity = 0.1;
-dateAxis.renderer.grid.template.disabled = true;
-dateAxis.renderer.ticks.template.disabled = false;
-dateAxis.renderer.ticks.template.strokeOpacity = 0.2;
-dateAxis.renderer.minLabelPosition = 0.01;
-dateAxis.renderer.maxLabelPosition = 0.99;
-dateAxis.keepSelection = true;
-dateAxis.minHeight = 30;
-
-dateAxis.groupData = true;
-dateAxis.minZoomCount = 5;
-
-// these two lines makes the axis to be initially zoomed-in
-// dateAxis.start = 0.7;
-// dateAxis.keepSelection = true;
-
-var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-valueAxis.tooltip.disabled = true;
-valueAxis.zIndex = 1;
-valueAxis.renderer.baseGrid.disabled = true;
-// height of axis
-valueAxis.height = am4core.percent(65);
-
-valueAxis.renderer.gridContainer.background.fill = am4core.color("#000000");
-valueAxis.renderer.gridContainer.background.fillOpacity = 0.05;
-valueAxis.renderer.inside = true;
-valueAxis.renderer.labels.template.verticalCenter = "bottom";
-valueAxis.renderer.labels.template.padding(2, 2, 2, 2);
-
-//valueAxis.renderer.maxLabelPosition = 0.95;
-valueAxis.renderer.fontSize = "0.8em"
-
-var series = chart.series.push(new am4charts.CandlestickSeries());
-series.dataFields.dateX = "Date";
-series.dataFields.openValueY = "Open";
-series.dataFields.valueY = "Close";
-series.dataFields.lowValueY = "Low";
-series.dataFields.highValueY = "High";
-series.clustered = false;
-series.tooltipText = "open: {openValueY.value}\nlow: {lowValueY.value}\nhigh: {highValueY.value}\nclose: {valueY.value}";
-series.name = "MSFT";
-series.defaultState.transitionDuration = 0;
-
-var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
-valueAxis2.tooltip.disabled = true;
-// height of axis
-valueAxis2.height = am4core.percent(35);
-valueAxis2.zIndex = 3
-// this makes gap between panels
-valueAxis2.marginTop = 30;
-valueAxis2.renderer.baseGrid.disabled = true;
-valueAxis2.renderer.inside = true;
-valueAxis2.renderer.labels.template.verticalCenter = "bottom";
-valueAxis2.renderer.labels.template.padding(2, 2, 2, 2);
-//valueAxis.renderer.maxLabelPosition = 0.95;
-valueAxis2.renderer.fontSize = "0.8em"
-
-valueAxis2.renderer.gridContainer.background.fill = am4core.color("#000000");
-valueAxis2.renderer.gridContainer.background.fillOpacity = 0.05;
-
-var series2 = chart.series.push(new am4charts.ColumnSeries());
-series2.dataFields.dateX = "Date";
-series2.clustered = false;
-series2.dataFields.valueY = "Volume";
-series2.yAxis = valueAxis2;
-series2.tooltipText = "{valueY.value}";
-series2.name = "Series 2";
-// volume should be summed
-series2.groupFields.valueY = "sum";
-series2.defaultState.transitionDuration = 0;
-
-chart.cursor = new am4charts.XYCursor();
-
-var scrollbarX = new am4charts.XYChartScrollbar();
-
-var sbSeries = chart.series.push(new am4charts.LineSeries());
-sbSeries.dataFields.valueY = "Close";
-sbSeries.dataFields.dateX = "Date";
-scrollbarX.series.push(sbSeries);
-sbSeries.disabled = true;
-scrollbarX.marginBottom = 20;
-chart.scrollbarX = scrollbarX;
-scrollbarX.scrollbarChart.xAxes.getIndex(0).minHeight = undefined;
-
-
-
-/**
- * Set up external controls
- */
-
-// Date format to be used in input fields
-var inputFieldFormat = "yyyy-MM-dd";
-
-document.getElementById("b1m").addEventListener("click", function() {
-  var max = dateAxis.groupMax["day1"];
-  var date = new Date(max);
-  am4core.time.add(date, "month", -1);
-  zoomToDates(date);
-});
-
-document.getElementById("b3m").addEventListener("click", function() {
-  var max = dateAxis.groupMax["day1"];
-  var date = new Date(max);
-  am4core.time.add(date, "month", -3);
-  zoomToDates(date);
-});
-
-document.getElementById("b6m").addEventListener("click", function() {
-  var max = dateAxis.groupMax["day1"];
-  var date = new Date(max);
-  am4core.time.add(date, "month", -6);
-  zoomToDates(date);
-});
-
-document.getElementById("b1y").addEventListener("click", function() {
-  var max = dateAxis.groupMax["day1"];
-  var date = new Date(max);
-  am4core.time.add(date, "year", -1);
-  zoomToDates(date);
-});
-
-document.getElementById("bytd").addEventListener("click", function() {
-  var max = dateAxis.groupMax["day1"];
-  var date = new Date(max);
-  am4core.time.round(date, "year", 1);
-  zoomToDates(date);
-});
-
-document.getElementById("bmax").addEventListener("click", function() {
-  var min = dateAxis.groupMin["day1"];
-  var date = new Date(min);
-  zoomToDates(date);
-});
-
-dateAxis.events.on("selectionextremeschanged", function() {
-  updateFields();
-});
-
-dateAxis.events.on("extremeschanged", updateFields);
-
-function updateFields() {
-  var minZoomed = dateAxis.minZoomed + am4core.time.getDuration(dateAxis.mainBaseInterval.timeUnit, dateAxis.mainBaseInterval.count) * 0.5;
-  document.getElementById("fromfield").value = chart.dateFormatter.format(minZoomed, inputFieldFormat);
-  document.getElementById("tofield").value = chart.dateFormatter.format(new Date(dateAxis.maxZoomed), inputFieldFormat);
-}
-
-document.getElementById("fromfield").addEventListener("keyup", updateZoom);
-document.getElementById("tofield").addEventListener("keyup", updateZoom);
-
-var zoomTimeout;
-function updateZoom() {
-  if (zoomTimeout) {
-    clearTimeout(zoomTimeout);
-  }
-  zoomTimeout = setTimeout(function() {
-    var start = document.getElementById("fromfield").value;
-    var end = document.getElementById("tofield").value;
-    if ((start.length < inputFieldFormat.length) || (end.length < inputFieldFormat.length)) {
-      return;
-    }
-    var startDate = chart.dateFormatter.parse(start, inputFieldFormat);
-    var endDate = chart.dateFormatter.parse(end, inputFieldFormat);
-
-    if (startDate && endDate) {
-      dateAxis.zoomToDates(startDate, endDate);
-    }
-  }, 500);
-}
-
-function zoomToDates(date) {
-  var min = dateAxis.groupMin["day1"];
-  var max = dateAxis.groupMax["day1"];
+  var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+  dateAxis.renderer.grid.template.location = 0;
+  dateAxis.renderer.ticks.template.length = 8;
+  dateAxis.renderer.ticks.template.strokeOpacity = 0.1;
+  dateAxis.renderer.grid.template.disabled = true;
+  dateAxis.renderer.ticks.template.disabled = false;
+  dateAxis.renderer.ticks.template.strokeOpacity = 0.2;
+  dateAxis.renderer.minLabelPosition = 0.01;
+  dateAxis.renderer.maxLabelPosition = 0.99;
   dateAxis.keepSelection = true;
-  //dateAxis.start = (date.getTime() - min)/(max - min);
-  //dateAxis.end = 1;
+  dateAxis.minHeight = 30;
 
-  dateAxis.zoom({start:(date.getTime() - min)/(max - min), end:1});
-}
+  dateAxis.groupData = true;
+  dateAxis.minZoomCount = 5;
 
-}); // end am4core.ready()
+  // these two lines makes the axis to be initially zoomed-in
+  // dateAxis.start = 0.7;
+  // dateAxis.keepSelection = true;
+
+  var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+  valueAxis.tooltip.disabled = true;
+  valueAxis.zIndex = 1;
+  valueAxis.renderer.baseGrid.disabled = true;
+  // height of axis
+  valueAxis.height = am4core.percent(65);
+
+  valueAxis.renderer.gridContainer.background.fill = am4core.color("#000000");
+  valueAxis.renderer.gridContainer.background.fillOpacity = 0.05;
+  valueAxis.renderer.inside = true;
+  valueAxis.renderer.labels.template.verticalCenter = "bottom";
+  valueAxis.renderer.labels.template.padding(2, 2, 2, 2);
+
+  //valueAxis.renderer.maxLabelPosition = 0.95;
+  valueAxis.renderer.fontSize = "0.8em"
+
+  var series = chart.series.push(new am4charts.CandlestickSeries());
+  series.dataFields.dateX = "Date";
+  series.dataFields.openValueY = "Open";
+  series.dataFields.valueY = "Close";
+  series.dataFields.lowValueY = "Low";
+  series.dataFields.highValueY = "High";
+  series.clustered = false;
+  series.tooltipText = "open: {openValueY.value}\nlow: {lowValueY.value}\nhigh: {highValueY.value}\nclose: {valueY.value}";
+  series.name = "MSFT";
+  series.defaultState.transitionDuration = 0;
+
+  var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
+  valueAxis2.tooltip.disabled = true;
+  // height of axis
+  valueAxis2.height = am4core.percent(35);
+  valueAxis2.zIndex = 3
+  // this makes gap between panels
+  valueAxis2.marginTop = 30;
+  valueAxis2.renderer.baseGrid.disabled = true;
+  valueAxis2.renderer.inside = true;
+  valueAxis2.renderer.labels.template.verticalCenter = "bottom";
+  valueAxis2.renderer.labels.template.padding(2, 2, 2, 2);
+  //valueAxis.renderer.maxLabelPosition = 0.95;
+  valueAxis2.renderer.fontSize = "0.8em"
+
+  valueAxis2.renderer.gridContainer.background.fill = am4core.color("#000000");
+  valueAxis2.renderer.gridContainer.background.fillOpacity = 0.05;
+
+  var series2 = chart.series.push(new am4charts.ColumnSeries());
+  series2.dataFields.dateX = "Date";
+  series2.clustered = false;
+  series2.dataFields.valueY = "Volume";
+  series2.yAxis = valueAxis2;
+  series2.tooltipText = "{valueY.value}";
+  series2.name = "Series 2";
+  // volume should be summed
+  series2.groupFields.valueY = "sum";
+  series2.defaultState.transitionDuration = 0;
+
+  chart.cursor = new am4charts.XYCursor();
+
+  var scrollbarX = new am4charts.XYChartScrollbar();
+
+  var sbSeries = chart.series.push(new am4charts.LineSeries());
+  sbSeries.dataFields.valueY = "Close";
+  sbSeries.dataFields.dateX = "Date";
+  scrollbarX.series.push(sbSeries);
+  sbSeries.disabled = true;
+  scrollbarX.marginBottom = 20;
+  chart.scrollbarX = scrollbarX;
+  scrollbarX.scrollbarChart.xAxes.getIndex(0).minHeight = undefined;
+
+
+
+  /**
+   * Set up external controls
+   */
+
+  // Date format to be used in input fields
+  var inputFieldFormat = "yyyy-MM-dd";
+
+
+  dateAxis.events.on("selectionextremeschanged", function() {
+    updateFields();
+  });
+
+  dateAxis.events.on("extremeschanged", updateFields);
+
+  function updateFields() {
+    var minZoomed = dateAxis.minZoomed + am4core.time.getDuration(dateAxis.mainBaseInterval.timeUnit, dateAxis.mainBaseInterval.count) * 0.5;
+    document.getElementById("fromfield").value = chart.dateFormatter.format(minZoomed, inputFieldFormat);
+    document.getElementById("tofield").value = chart.dateFormatter.format(new Date(dateAxis.maxZoomed), inputFieldFormat);
+  }
+
+  document.getElementById("fromfield").addEventListener("keyup", updateZoom);
+  document.getElementById("tofield").addEventListener("keyup", updateZoom);
+
+  var zoomTimeout;
+  function updateZoom() {
+    if (zoomTimeout) {
+      clearTimeout(zoomTimeout);
+    }
+    zoomTimeout = setTimeout(function() {
+      var start = document.getElementById("fromfield").value;
+      var end = document.getElementById("tofield").value;
+      if ((start.length < inputFieldFormat.length) || (end.length < inputFieldFormat.length)) {
+        return;
+      }
+      var startDate = chart.dateFormatter.parse(start, inputFieldFormat);
+      var endDate = chart.dateFormatter.parse(end, inputFieldFormat);
+
+      if (startDate && endDate) {
+        dateAxis.zoomToDates(startDate, endDate);
+      }
+    }, 500);
+  }
+
+  function zoomToDates(date) {
+    var min = dateAxis.groupMin["day1"];
+    var max = dateAxis.groupMax["day1"];
+    dateAxis.keepSelection = true;
+    //dateAxis.start = (date.getTime() - min)/(max - min);
+    //dateAxis.end = 1;
+
+    dateAxis.zoom({start:(date.getTime() - min)/(max - min), end:1});
+  }
+
+  }); // end am4core.ready()
+
 </script>
 
 <!-- HTML -->
@@ -261,6 +233,8 @@ function zoomToDates(date) {
 <!--- amcharts ends --->
 
 <!--- table for filter queries ---->
+
+
 
 <table cellspacing="5" cellpadding="5" border="0">
         <tbody>  <tr>
@@ -345,12 +319,17 @@ function zoomToDates(date) {
         <thead>
             <tr>
                 <th>Ticker</th>
-                <th>Open</th>
-                <th>Close</th>
+                <th>Company</th>
+                <th>Sector</th>
+                <th>Country</th>
+                <th>Market Cap</th>
+                <th>52 Week High %</th>
+                <th>52 Week Low %</th>
+                <th>SMA 20</th>
+                <th>SMA 50</th>
+                <th>Price</th>
                 <th>Volume</th>
-                <th>High</th>
-                <th>Low</th>
-                <th>Daily Change (%)</th>
+                <th>(%)</th>
             </tr>
         </thead>
         <tbody>
@@ -358,15 +337,28 @@ function zoomToDates(date) {
           {%for stock in stocks%}
             <tr>
                 <td>{{ stock.ticker }}</td>
-                <td>{{ stock.open }}</td>
-                <td>{{ stock.close }}</td>
-                <td>{{ stock.volume }}</td>
-                <td>{{ stock.high }}</td>
-                <td>{{ stock.low }}</td>
+                <td>{{ stock.company }}</td>
+                <td>{{ stock.sector }}</td>
+                <td>{{ stock.country }}</td>
+                <td>
+                  {% if stock.marketcap > 1%}
+                  {{ stock.marketcap }}
+                  {%else%}
+                  -
+                  {%endif%}
+                </td>
+                <td style="color:green;">{{stock.high52}}</td>
+                <td style="color:red;">{{stock.low52}}</td>
+                <td>{{stock.SMA20}}</td>
+                <td>{{stock.SMA50}}</td>
+                <td>{{ stock.price}}</td>
+                <td>{{ stock.volume}}</td>
                 {% if stock.change > 0 %}
-                <td style="color:green;">{{stock.change}}</td>
+                <td style="color:green; background:honeydew;">{{stock.change}}</td>
+                {% elif stock.change < 0 %}
+                <td style="color:red; background:mistyrose;">{{stock.change}}</td>
                 {% else %}
-                <td style="color:red;">{{stock.change}}</td>
+                <td>{{stock.change}}</td>
                 {%endif%}
             </tr>
           {%endfor%}
@@ -439,7 +431,8 @@ function zoomToDates(date) {
 
     $('#table_id tbody').on('click', 'tr', function () {
         var data = table.row( this ).data();
-        alert( 'You clicked on '+data[0]+'\'s row' );
+        //alert( 'You clicked on '+data[0]+'\'s row' );
+        window.location = "http://localhost:8000/stockview/"+data[0]+"/";
     } );
 
 

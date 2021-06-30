@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--- CDN for DT dependencies--->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.24/sc-2.0.3/sp-1.2.2/datatables.min.css"/>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.24/sc-2.0.3/sp-1.2.2/datatables.min.js"></script>
+<!--- CDN for DT and plugins, for reference https://datatables.net/download/--->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jq-3.3.1/jszip-2.5.0/dt-1.10.24/b-1.7.0/b-html5-1.7.0/b-print-1.7.0/fc-3.3.2/fh-3.1.8/sc-2.0.3/sb-1.0.1/sp-1.2.2/datatables.min.css"/>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.3.1/jszip-2.5.0/dt-1.10.24/b-1.7.0/b-html5-1.7.0/b-print-1.7.0/fc-3.3.2/fh-3.1.8/sc-2.0.3/sb-1.0.1/sp-1.2.2/datatables.min.js"></script>
+<!-- searchbuilder css and js inorder -->
+
+<!-- for filter -->
+<script type="text/javascript" src="jquery.dataTables.js"></script>
+<script type="text/javascript" src="dataTables.filter.range.js"></script>
+
+
+{% extends "welcome/base.html" %}
+{% block content %}
+{% if user.is_authenticated %}
+
+
+
+
+
+<form method='POST'>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save">
+</form>
+
+
+{%else%}
+You must be logged into an active account to access portfolios
+{%endif%}
+{% endblock %}
+
+<!--- Below will be later changed in amcharts for redirecting to textfield--->
+<!--- chart.dataSource.url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSonFU4XtbOCen90_587fyQ4Lc_bCtNwI-Z5U7hUOVtQ97EOZ0WPGmqtAtHA_dKMUGZLVgNNLUFxbrT/pub?gid=1024545958&single=true&output=csv"; --->
