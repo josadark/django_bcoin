@@ -13,9 +13,34 @@ class Post(models.Model):
 class Portfolio(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
+    sunkvalue = models.FloatField(default=0.00)
+    value = models.FloatField(default=0.00)
+    change = models.FloatField(default=0.00)
+    earnings = models.FloatField(default = 0.00)
     #assets = models.ManyToManyField(StockAsset, blank=True)
+    def __str__(self):
+        return self.title
 
+class PublicPortfolio(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    sunkvalue = models.FloatField(default=0.00)
+    value = models.FloatField(default=0.00)
+    change = models.FloatField(default=0.00)
+    earnings = models.FloatField(default = 0.00)
+    #assets = models.ManyToManyField(StockAsset, blank=True)
+    def __str__(self):
+        return self.title
 
+class Screen(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    minValue = models.FloatField(default=0.00)
+    maxValue = models.FloatField(default=99999.99)
+    minVolume = models.FloatField(default=0.00)
+    maxVolume = models.FloatField(default = 99990.99)
+    #assets = models.ManyToManyField(StockAsset, blank=True)
     def __str__(self):
         return self.title
 
@@ -24,8 +49,22 @@ class StockAsset(models.Model):
     date_purchased = models.DateTimeField(default=timezone.now)
     quantity = models.IntegerField()
     portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, null=True)
+    buyPrice = models.FloatField(default = 0.00)
+    value = models.FloatField(default = 0.00)
+    change = models.FloatField(default=0.00)
+    earnings = models.FloatField(default=0.00)
 
+class PublicStockAsset(models.Model):
+    ticker = models.CharField(max_length=9)
+    portfolio = models.ForeignKey(PublicPortfolio, on_delete=models.CASCADE, null=True)
+    volume = models.IntegerField(default=0.00)
+    value = models.FloatField(default=0.00)
 
+class ScreenAsset(models.Model):
+    ticker = models.CharField(max_length=9)
+    screen = models.ForeignKey(Screen, on_delete=models.CASCADE, null=True)
+    volume = models.IntegerField(default=0.00)
+    value = models.FloatField(default=0.00)
 
 class Candle(models.Model):
     title = models.CharField(max_length=100)
@@ -133,6 +172,14 @@ class CryptoStock(models.Model): #contains data for stocks, grabbed by webscrape
     low = models.FloatField()
     change = models.FloatField()
 
+class ChinaStock(models.Model):
+    #,ts_code,symbol,name,area,industry,list_date
+    ts_code = models.CharField(max_length=30)
+    ticker = models.CharField(max_length=9)
+    name = models.CharField(max_length=9)
+    area = models.CharField(max_length=9)
+    industry = models.CharField(max_length=9)
+    list_date = models.CharField(max_length=9)
 
 
 

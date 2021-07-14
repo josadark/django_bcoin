@@ -9,7 +9,11 @@
     </div>
     {% endif %}
 
-
+    {% if graph2 %}
+    <div style="width:600;height:500">
+      {{ graph2|safe }}
+    </div>
+    {% endif %}
 
 
     {% endblock content %}

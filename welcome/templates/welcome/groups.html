@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<!--- CDN for DT dependencies--->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.24/sc-2.0.3/sp-1.2.2/datatables.min.css"/>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.3.1/dt-1.10.24/sc-2.0.3/sp-1.2.2/datatables.min.js"></script>
+<!--- CDN for DT and plugins, for reference https://datatables.net/download/--->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/jq-3.3.1/jszip-2.5.0/dt-1.10.24/b-1.7.0/b-html5-1.7.0/b-print-1.7.0/fc-3.3.2/fh-3.1.8/sc-2.0.3/sb-1.0.1/sp-1.2.2/datatables.min.css"/>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/jq-3.3.1/jszip-2.5.0/dt-1.10.24/b-1.7.0/b-html5-1.7.0/b-print-1.7.0/fc-3.3.2/fh-3.1.8/sc-2.0.3/sb-1.0.1/sp-1.2.2/datatables.min.js"></script>
+<!-- searchbuilder css and js inorder -->
+
+<!-- for filter -->
+<script type="text/javascript" src="jquery.dataTables.js"></script>
+<script type="text/javascript" src="dataTables.filter.range.js"></script>
+
+
+{% extends "welcome/base.html" %}
+{% block content %}
+
+
+
+
+
+
+<!--- --->
+
+
+
+
+
+<!--- amcharts begin --->
+<!-- Styles -->
+<style>
+#chartdiv {
+  width: 100%;
+  height: 500px;
+  max-width: 100%;
+}
+</style>
+
+<!-- Resources -->
+<script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
+<!-- Chart code -->
+<script>
+  am4core.ready(function() {
+
+  // Themes begin
+  am4core.useTheme(am4themes_animated);
+  // Themes end
+
+  // Create chart
+  var chart = am4core.create("chartdiv", am4charts.XYChart);
+  chart.padding(0, 15, 0, 15);
+
+  // Load data
+  chart.dataSource.url = "http://localhost:8000/grabcsv/AAN";
+  chart.dataSource.parser = new am4core.CSVParser();
+  chart.dataSource.parser.options.useColumnNames = true;
+  chart.dataSource.parser.options.reverse = false;
+
+  // the following line makes value axes to be arranged vertically.
+  chart.leftAxesContainer.layout = "vertical";
+
+  // uncomment this line if you want to change order of axes
+  //chart.bottomAxesContainer.reverseOrder = true;
+
+  var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+  dateAxis.renderer.grid.template.location = 0;
+  dateAxis.renderer.ticks.template.length = 8;
+  dateAxis.renderer.ticks.template.strokeOpacity = 0.1;
+  dateAxis.renderer.grid.template.disabled = true;
+  dateAxis.renderer.ticks.template.disabled = false;
+  dateAxis.renderer.ticks.template.strokeOpacity = 0.2;
+  dateAxis.renderer.minLabelPosition = 0.01;
+  dateAxis.renderer.maxLabelPosition = 0.99;
+  dateAxis.keepSelection = true;
+  dateAxis.minHeight = 30;
+
+  dateAxis.groupData = true;
+  dateAxis.minZoomCount = 5;
+
+  // these two lines makes the axis to be initially zoomed-in
+  // dateAxis.start = 0.7;
+  // dateAxis.keepSelection = true;
+
+  var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+  valueAxis.tooltip.disabled = true;
+  valueAxis.zIndex = 1;
+  valueAxis.renderer.baseGrid.disabled = true;
+  // height of axis
+  valueAxis.height = am4core.percent(65);
+
+  valueAxis.renderer.gridContainer.background.fill = am4core.color("#000000");
+  valueAxis.renderer.gridContainer.background.fillOpacity = 0.05;
+  valueAxis.renderer.inside = true;
+  valueAxis.renderer.labels.template.verticalCenter = "bottom";
+  valueAxis.renderer.labels.template.padding(2, 2, 2, 2);
+
+  //valueAxis.renderer.maxLabelPosition = 0.95;
+  valueAxis.renderer.fontSize = "0.8em"
+
+  var series = chart.series.push(new am4charts.CandlestickSeries());
+  series.dataFields.dateX = "Date";
+  series.dataFields.openValueY = "Open";
+  series.dataFields.valueY = "Close";
+  series.dataFields.lowValueY = "Low";
+  series.dataFields.highValueY = "High";
+  series.clustered = false;
+  series.tooltipText = "open: {openValueY.value}\nlow: {lowValueY.value}\nhigh: {highValueY.value}\nclose: {valueY.value}";
+  series.name = "MSFT";
+  series.defaultState.transitionDuration = 0;
+
+  var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
+  valueAxis2.tooltip.disabled = true;
+  // height of axis
+  valueAxis2.height = am4core.percent(35);
+  valueAxis2.zIndex = 3
+  // this makes gap between panels
+  valueAxis2.marginTop = 30;
+  valueAxis2.renderer.baseGrid.disabled = true;
+  valueAxis2.renderer.inside = true;
+  valueAxis2.renderer.labels.template.verticalCenter = "bottom";
+  valueAxis2.renderer.labels.template.padding(2, 2, 2, 2);
+  //valueAxis.renderer.maxLabelPosition = 0.95;
+  valueAxis2.renderer.fontSize = "0.8em"
+
+  valueAxis2.renderer.gridContainer.background.fill = am4core.color("#000000");
+  valueAxis2.renderer.gridContainer.background.fillOpacity = 0.05;
+
+  var series2 = chart.series.push(new am4charts.ColumnSeries());
+  series2.dataFields.dateX = "Date";
+  series2.clustered = false;
+  series2.dataFields.valueY = "Volume";
+  series2.yAxis = valueAxis2;
+  series2.tooltipText = "{valueY.value}";
+  series2.name = "Series 2";
+  // volume should be summed
+  series2.groupFields.valueY = "sum";
+  series2.defaultState.transitionDuration = 0;
+
+  chart.cursor = new am4charts.XYCursor();
+
+  var scrollbarX = new am4charts.XYChartScrollbar();
+
+  var sbSeries = chart.series.push(new am4charts.LineSeries());
+  sbSeries.dataFields.valueY = "Close";
+  sbSeries.dataFields.dateX = "Date";
+  scrollbarX.series.push(sbSeries);
+  sbSeries.disabled = true;
+  scrollbarX.marginBottom = 20;
+  chart.scrollbarX = scrollbarX;
+  scrollbarX.scrollbarChart.xAxes.getIndex(0).minHeight = undefined;
+
+
+
+  /**
+   * Set up external controls
+   */
+
+  // Date format to be used in input fields
+  var inputFieldFormat = "yyyy-MM-dd";
+
+
+  dateAxis.events.on("selectionextremeschanged", function() {
+    updateFields();
+  });
+
+  dateAxis.events.on("extremeschanged", updateFields);
+
+  function updateFields() {
+    var minZoomed = dateAxis.minZoomed + am4core.time.getDuration(dateAxis.mainBaseInterval.timeUnit, dateAxis.mainBaseInterval.count) * 0.5;
+    document.getElementById("fromfield").value = chart.dateFormatter.format(minZoomed, inputFieldFormat);
+    document.getElementById("tofield").value = chart.dateFormatter.format(new Date(dateAxis.maxZoomed), inputFieldFormat);
+  }
+
+  document.getElementById("fromfield").addEventListener("keyup", updateZoom);
+  document.getElementById("tofield").addEventListener("keyup", updateZoom);
+
+  var zoomTimeout;
+  function updateZoom() {
+    if (zoomTimeout) {
+      clearTimeout(zoomTimeout);
+    }
+    zoomTimeout = setTimeout(function() {
+      var start = document.getElementById("fromfield").value;
+      var end = document.getElementById("tofield").value;
+      if ((start.length < inputFieldFormat.length) || (end.length < inputFieldFormat.length)) {
+        return;
+      }
+      var startDate = chart.dateFormatter.parse(start, inputFieldFormat);
+      var endDate = chart.dateFormatter.parse(end, inputFieldFormat);
+
+      if (startDate && endDate) {
+        dateAxis.zoomToDates(startDate, endDate);
+      }
+    }, 500);
+  }
+
+  function zoomToDates(date) {
+    var min = dateAxis.groupMin["day1"];
+    var max = dateAxis.groupMax["day1"];
+    dateAxis.keepSelection = true;
+    //dateAxis.start = (date.getTime() - min)/(max - min);
+    //dateAxis.end = 1;
+
+    dateAxis.zoom({start:(date.getTime() - min)/(max - min), end:1});
+  }
+
+  }); // end am4core.ready()
+
+</script>
+
+<!-- HTML -->
+    <div id="controls" style="width: 100%; overflow: hidden;">
+    <div style="float: left; margin-left: 15px;">
+    From: <input type="text" id="fromfield" class="amcharts-input" />
+    To: <input type="text" id="tofield" class="amcharts-input" />
+    </div>
+    <div style="float: right; margin-right: 15px;">
+    <button id="b1m" class="amcharts-input">1m</button>
+    <button id="b3m" class="amcharts-input">3m</button>
+    <button id="b6m" class="amcharts-input">6m</button>
+    <button id="b1y" class="amcharts-input">1y</button>
+    <button id="bytd" class="amcharts-input">YTD</button>
+    <button id="bmax" class="amcharts-input">MAX</button>
+    </div>
+    </div>
+<div id="chartdiv"></div>
+<!--- amcharts ends --->
+
+<!--- table for filter queries ---->
+
+
+
+<table cellspacing="5" cellpadding="5" border="0">
+        <tbody>  <tr>
+            <td>Ticker</td>
+            <td><input type="text" id="ticker" name="ticker"></td>
+            <td>Pattern</td>
+            <td>
+              <select id="patterns" name="patterns">
+                <option value="All">All</option>
+                <option value="Top Gainer">Top Gainer</option>
+                <option value="Top Loser">Top Loser</option>
+                <option value="New High">New High</option>
+                <option value="New Low">New Low</option>
+                <option value="Most Volatile">Most Volatile</option>
+                <option value="Most Active">Most Active</option>
+                <option value="Unusual Volume">Unusual Volume</option>
+                <option value="Overbought">Overbought</option>
+                <option value="Oversold">Oversold</option>
+                <option value="Downgrades">Downgrades</option>
+                <option value="Upgrades">Upgrades</option>
+                <option value="Earnings Before">Earnings Before</option>
+                <option value="Earnings After">Earnings After</option>
+                <option value="Recent Insider Buying">Recent Insider Buying</option>
+                <option value="Recent Insider Selling">Recent Insider Selling</option>
+                <option value="Major News">Major News</option>
+                <option value="Horizontal S/R">Horizontal S/R</option>
+                <option value="TL Resistance">TL Resistance</option>
+                <option value="TL Support">TL Support</option>
+                <option value="Wedge Up">Wedge Up</option>
+                <option value="Wedge Down">Wedge Down</option>
+                <option value="Triangle Ascending">Triangle Ascending</option>
+                <option value="Triangle Descending">Triangle Descending</option>
+                <option value="Wedge">Wedge</option>
+                <option value="Channel Up">Channel Up</option>
+                <option value="Channel Down">Channel Down</option>
+                <option value="Channel">Channel</option>
+                <option value="Double Top">Double Top</option>
+                <option value="Double Bottom">Double Bottom</option>
+                <option value="Multiple Top">Multiple Top</option>
+                <option value="Multiple Bottom">Multiple Bottom</option>
+                <option value="Head and Shoulders">Head and Shoulders</option>
+                <option value="Head and Shoulders Inverse">Head and Shoulders Inverse</option>
+              </select> </td>
+
+        </tr>
+          <tr>
+            <td>MaxVolume</td>
+            <td><input type="text" id="maxVol" name="maxVol"></td>
+            <td>MinVolume</td>
+            <td><input type="text" id="minVol" name="minVol"></td>
+        </tr>
+          <tr>
+            <td>MaxOpen</td>
+            <td><input type="text" id="maxOpen" name="maxOpen"></td>
+            <td>MinOpen</td>
+            <td><input type="text" id="minOpen" name="minOpen"></td>
+        </tr>
+          <tr>
+            <td>MaxClose</td>
+            <td><input type="text" id="maxClose" name="maxClose"></td>
+            <td>MinClose</td>
+            <td><input type="text" id="minClose" name="minClose"></td>
+        </tr>
+        <tr>
+          <td>MaxChange</td>
+          <td><input type="text" id="maxChange" name="maxChange"></td>
+          <td>MinChange</td>
+          <td><input type="text" id="minChange" name="minChange"></td>
+      </tr>
+    </tbody></table>
+
+
+<!--- table for filter queries END---->
+
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>JQuery Datatable</title>
+  </head>
+  <body>
+    <table id="table_id" class="display">
+        <thead>
+            <tr>
+                <th>Ticker</th>
+                <th>Company</th>
+                <th>Sector</th>
+                <th>Country</th>
+                <th>Market Cap</th>
+                <th>52 Week High %</th>
+                <th>52 Week Low %</th>
+                <th>SMA 20</th>
+                <th>SMA 50</th>
+                <th>Price</th>
+                <th>Volume</th>
+                <th>(%)</th>
+            </tr>
+        </thead>
+        <tbody>
+          <!--- need for blocks to retrieve data here --->
+          {%for stock in stocks%}
+            <tr>
+                <td>{{ stock.ticker }}</td>
+                <td>{{ stock.company }}</td>
+                <td>{{ stock.sector }}</td>
+                <td>{{ stock.country }}</td>
+                <td>
+                  {% if stock.marketcap > 1%}
+                  {{ stock.marketcap }}
+                  {%else%}
+                  -
+                  {%endif%}
+                </td>
+                <td style="color:green;">{{stock.high52}}</td>
+                <td style="color:red;">{{stock.low52}}</td>
+                <td>{{stock.SMA20}}</td>
+                <td>{{stock.SMA50}}</td>
+                <td>{{ stock.price}}</td>
+                <td>{{ stock.volume}}</td>
+                {% if stock.change > 0 %}
+                <td style="color:green; background:honeydew;">{{stock.change}}</td>
+                {% elif stock.change < 0 %}
+                <td style="color:red; background:mistyrose;">{{stock.change}}</td>
+                {% else %}
+                <td>{{stock.change}}</td>
+                {%endif%}
+            </tr>
+          {%endfor%}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th>Ticker</th>
+            <th>Open</th>
+            <th>Close</th>
+            <th>Volume</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Daily Change (%)</th>
+          </tr>
+        </tfoot>
+    </table>
+
+    <<script
+    type="text/javascript">
+
+
+    $.fn.dataTable.ext.search.push(
+
+        function( settings, data, dataIndex ) {
+            var ticker = $('#ticker').val();
+            var minVol = parseInt( $('#minVol').val(), 10 );
+            var maxVol = parseInt( $('#maxVol').val(), 10 );
+            var minClose = parseInt( $('#minClose').val(), 10 );
+            var maxClose = parseInt( $('#maxClose').val(), 10 );
+            var minOpen = parseInt( $('#minOpen').val(), 10 );
+            var maxOpen = parseInt( $('#maxOpen').val(), 10 );
+            var minChange = parseFloat( $('#minChange').val(), 10 );
+            var maxChange = parseFloat( $('#maxChange').val(), 10 );
+            var close = parseFloat(data[2]) || 0;
+            var volume = parseFloat( data[3] ) || 0;
+            var open = parseFloat(data[1]) || 0;
+            var change = parseFloat(data[6] || 0)
+            var tickers = (data[0]);
+
+            if ( (( isNaN( minVol ) && isNaN( maxVol ) ) ||
+                 ( isNaN( minVol ) && volume <= maxVol ) ||
+                 ( minVol <= volume   && isNaN( maxVol ) ) ||
+                 ( minVol <= volume   && volume <= maxVol )) &&
+               (( isNaN( minClose ) && isNaN( maxClose ) ) ||
+                  ( isNaN( minClose ) && close <= maxClose ) ||
+                  ( minClose <= close   && isNaN( maxClose ) ) ||
+                  ( minClose <= close   && close <= maxClose )) &&
+                  (( isNaN( minOpen ) && isNaN( maxOpen ) ) ||
+                   ( isNaN( minOpen ) && open <= maxOpen ) ||
+                   ( minOpen <= open   && isNaN( maxOpen ) ) ||
+                   ( minOpen <= open   && open <= maxOpen )) &&
+                   (tickers.includes(ticker.toUpperCase())) &&
+                   (( isNaN( minChange ) && isNaN( maxChange ) ) ||
+                    ( isNaN( minChange ) && change <= maxChange ) ||
+                    ( minChange <= change   && isNaN( maxChange ) ) ||
+                    ( minChange <= change   && change <= maxChange ))
+               )
+            {
+                return true;
+            }
+            return false;
+        }
+    );
+
+
+    var table = $('#table_id').DataTable({
+      "dom": 'lrtip',
+      pageLength:50
+    });
+
+    $('#table_id tbody').on('click', 'tr', function () {
+        var data = table.row( this ).data();
+        //alert( 'You clicked on '+data[0]+'\'s row' );
+        window.location = "http://localhost:8000/stockview/"+data[0]+"/";
+    } );
+
+
+    $(document).ready( function () {
+    table;
+    });
+
+    // Event listener to the two range filtering inputs to redraw on input
+    $('#minVol, #maxVol, #minOpen, #maxOpen, #minClose, #maxClose, #maxChange, #minChange, #ticker').keyup( function() {
+      table.draw();
+    } );
+
+
+
+    </script>>
+  </body>
+</html>>
+{% endblock content %}

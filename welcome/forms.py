@@ -2,6 +2,7 @@ from django import forms
 
 from .models import Portfolio
 from .models import StockAsset
+from .models import Screen
 
 class PortfolioForm(forms.ModelForm):
     class Meta:
@@ -18,5 +19,19 @@ class AssetForm(forms.ModelForm):
         fields=[
         'ticker',
         'date_purchased',
-        'quantity'
+        'quantity',
+        'buyPrice'
+        ]
+
+class ScreenForm(forms.ModelForm):
+    class Meta:
+        model = Screen
+        exclude = ('user',)
+        fields=[
+        'title',
+        'description',
+        'minValue',
+        'maxValue',
+        'minVolume',
+        'maxVolume'
         ]

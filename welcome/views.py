@@ -12,9 +12,15 @@ from .models import IPO
 from .models import CryptoStock
 from .models import StockAsset
 from .models import Portfolio
+from .models import ChinaStock
+from .models import PublicPortfolio
+from .models import PublicStockAsset
+from .models import Screen
+from .models import ScreenAsset
 
 from .forms import PortfolioForm
 from .forms import AssetForm
+from .forms import ScreenForm
 
 # plotly imports
 import plotly.offline as opy
@@ -44,6 +50,22 @@ def notify():
     saveDaily()
     return
 
+def updateSurge(): #updates surgeportfolio -- also updates customscreens
+    PublicPortfolio.objects.all().delete()
+    formattedPortfolio = PublicPortfolio(title = 'Surge_Recommendations', description = 'Assets which show a sharp increase in volume within a 10 day trading period', sunkvalue = 0, value = 0, change = 0, earnings = 0)
+    formattedPortfolio.save()
+    for stock in Stock.objects.all():
+        if stock.volume > stock.averagevolume:
+            print(stock.ticker)
+            asset = PublicStockAsset(ticker = stock.ticker, portfolio = PublicPortfolio.objects.get(title="Surge_Recommendations"), volume = stock.volume, value = stock.price)
+            asset.save();
+    for screen in Screen.objects.all():
+        screen.screenasset_set.all().delete()
+        for stock in Stock.objects.all():
+            if stock.volume > screen.minVolume and stock.volume < screen.maxVolume and stock.price > screen.minValue and stock.price < screen.maxValue:
+                screenasset = ScreenAsset(value = stock.price, volume = stock.volume, ticker = stock.ticker, screen = screen)
+                screenasset.save()
+
 def saveCryptoDaily():
         CryptoStock.objects.all().delete()
         df = pd.read_csv('newcrypto.csv')
@@ -58,6 +80,19 @@ def saveCryptoDaily():
             stockRetrieve.save()
         return
 
+def saveCHNDaily(): #,ts_code,symbol,name,area,industry,list_date
+        ChinaStock.objects.all().delete()
+        df = pd.read_csv('newchina.csv')
+        df = df.fillna(0)
+        counter=0
+        #Date,Open,High,Low,Close,Adj Close,Volume,ticker
+        for i in df.itertuples():
+            #print(i[1])
+            #date_time = datetime.strptime(i[1], '%m/%d/%Y')
+            #stockRetrieve = Stock(date=date_time,ticker=i[8],open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,2))
+            stockRetrieve = ChinaStock(ts_code = i[2], ticker = i[3], name=i[4], area=i[5], industry=i[6], list_date=i[7])
+            stockRetrieve.save()
+        return
 
 def saveDaily():
         Stock.objects.all().delete()
@@ -139,17 +174,95 @@ def login_view(request):
 
     return render(request, 'welcome/login.html')
 
+
 def portfolio_view(request):
+    isLoggedIn = request.user.is_authenticated
+    portfolios=[]
+    portfolioNames=[]
+    portfolioValues=[]
+    portfolioCosts=[]
+    if(isLoggedIn):
+        portfolio = request.user.profile.portfolio.all()
+        portfolio = Portfolio.objects.all()
+
+        for port in portfolio:
+            port.sunkvalue = 0
+            port.value = 0
+            for sa in (port.stockasset_set.all()):
+                port.sunkvalue = port.sunkvalue + sa.buyPrice * sa.quantity
+                port.value = port.value + (sa.value * sa.quantity)
+                port.earnings = round(port.value - port.sunkvalue,2)
+                port.change = round(100*((port.value - port.sunkvalue) / port.sunkvalue), 2)
+
+        for i in portfolio:
+            portfolios.append(i)
+            portfolioNames.append(i.title)
+            portfolioValues.append(i.value)
+            portfolioCosts.append(i.sunkvalue)
+            print('loaded!')
+
+        fig = make_subplots(rows=1, cols=2, specs=[[{"type":"pie"}, {"type":"pie"}]])
+        fig.add_trace(go.Pie(labels=portfolioNames, values=portfolioValues), row=1, col=1)
+        fig.add_trace(go.Pie(labels=portfolioNames, values=portfolioCosts), row=1, col=2)
+        fig.update_layout(height=600, width=800, title_text="Total Portfolio Values versus Sunk Cost")
+        div = opy.plot(fig, auto_open=False, output_type='div')
+
+        publicPortfolios = PublicPortfolio.objects.all()
+    context = {'isLoggedIn':isLoggedIn, 'portfolios':portfolios, 'volatiles':Stock.objects.all(), 'publicPortfolios':publicPortfolios, 'graph':div}
+    return render(request, 'welcome/portfolio.html', context)
+
+def suggestions(request):
+    isLoggedIn = request.user.is_authenticated
+
+    publicPortfolios = PublicPortfolio.objects.all()
+    context = {'isLoggedIn':isLoggedIn, 'volatiles':Stock.objects.all(), 'publicPortfolios':publicPortfolios}
+    return render(request, 'welcome/suggestions.html', context)
+
+def screens(request):
+    isLoggedIn = request.user.is_authenticated
+    portfolios=[]
+    if(isLoggedIn):
+        screens = request.user.screen_set.all()
+        portfolio = Portfolio.objects.all()
+
+        for port in portfolio:
+            port.sunkvalue = 0
+            port.value = 0
+            for sa in (port.stockasset_set.all()):
+                port.sunkvalue = port.sunkvalue + sa.buyPrice * sa.quantity
+                port.value = port.value + (sa.value * sa.quantity)
+                port.earnings = round(port.value - port.sunkvalue,2)
+                port.change = round(100*((port.value - port.sunkvalue) / port.sunkvalue), 2)
+
+        for i in portfolio:
+            portfolios.append(i)
+            print('loaded!')
+
+        publicPortfolios = PublicPortfolio.objects.all()
+    context = {'isLoggedIn':isLoggedIn, 'portfolios':portfolios, 'volatiles':Stock.objects.all(), 'screens':screens}
+    return render(request, 'welcome/screens.html', context)
+
+def delete_portfolio(request):
     isLoggedIn = request.user.is_authenticated
     portfolios=[]
     if(isLoggedIn):
         portfolio = request.user.profile.portfolio.all()
         portfolio = Portfolio.objects.all()
+
+        for port in portfolio:
+            port.sunkvalue = 0
+            port.value = 0
+            for sa in (port.stockasset_set.all()):
+                port.sunkvalue = port.sunkvalue + sa.buyPrice * sa.quantity
+                port.value = port.value + (sa.value * sa.quantity)
+                port.earnings = round(port.value - port.sunkvalue,2)
+                port.change = round(100*((port.value - port.sunkvalue) / port.sunkvalue), 2)
+
         for i in portfolio:
             portfolios.append(i)
             print('loaded!')
-    context = {'isLoggedIn':isLoggedIn, 'portfolios':portfolios}
-    return render(request, 'welcome/portfolio.html', context)
+    context = {'isLoggedIn':isLoggedIn, 'portfolios':portfolios, 'volatiles':Stock.objects.all()}
+    return render(request, 'welcome/delete_portfolio.html', context)
 
 def create_portfolio_view(request):
         form = PortfolioForm(request.POST or None)
@@ -157,9 +270,66 @@ def create_portfolio_view(request):
             form.save()
             form = PortfolioForm()
             print("form saved!")
+            return redirect('welcome-portfolio')
         else:
             print("invalid form?")
-        return render(request, 'welcome/create_portfolio.html', {'form': form})
+        return render(request, 'welcome/create_portfolio.html', {'form': form, 'volatiles':Stock.objects.all()})
+
+def edit_portfolio_fields(request, portfolioID):
+        form = PortfolioForm(request.POST or None)
+        if form.is_valid():
+            form.stockasset_set = Portfolio.objects.get(title=''+portfolioID).stockasset_set.all()
+            tempform = form.save(commit = False)
+            tempport = Portfolio.objects.get(title=portfolioID)
+            tempport.description = tempform.description
+            tempport.title = tempform.title
+            tempport.save()
+            form = PortfolioForm()
+            print("form saved!")
+            return redirect('welcome-portfolio')
+        else:
+            print("invalid form?")
+        return render(request, 'welcome/create_portfolio.html', {'form': form, 'volatiles':Stock.objects.all()})
+
+def portfolio_addition(request, stockID):
+        isLoggedIn = request.user.is_authenticated
+        portfolios=[]
+        if(isLoggedIn):
+            portfolio = request.user.profile.portfolio.all()
+            portfolio = Portfolio.objects.all()
+
+            for port in portfolio:
+                port.sunkvalue = 0
+                port.value = 0
+                for sa in (port.stockasset_set.all()):
+                    port.sunkvalue = port.sunkvalue + sa.buyPrice * sa.quantity
+                    port.value = port.value + (sa.value * sa.quantity)
+                    port.earnings = round(port.value - port.sunkvalue,2)
+                    port.change = round(100*((port.value - port.sunkvalue) / port.sunkvalue), 2)
+            for i in portfolio:
+                portfolios.append(i)
+                print('loaded!')
+        context = {'isLoggedIn':isLoggedIn, 'portfolios':portfolios, 'volatiles':Stock.objects.all(), 'stockID':stockID}
+        return render(request, 'welcome/portfolio_addition.html', context)
+
+def adding(request, stockID, portfolioID):
+            port = Portfolio.objects.get(title=portfolioID)
+            stock = Stock.objects.get(ticker=stockID)
+            form = AssetForm(request.POST or None, initial={"ticker":stockID, "buyPrice":stock.price})
+            if form.is_valid():
+                #form.save(commit=False)
+                form.Portfolio = port
+                tempform = form.save(commit = False)
+                tempform.portfolio = port
+                tempform.value = Stock.objects.get(ticker=tempform.ticker).price
+                tempform.save()
+                form = AssetForm()
+                print("form saved!")
+                return redirect('welcome-about')
+            else:
+                print("invalid form?")
+            context = {'portfolio':Portfolio.objects.get(title=portfolioID), 'stocks':Portfolio.objects.get(title=''+portfolioID).stockasset_set.all(), 'form':form, 'portfolioID':portfolioID, 'volatiles':Stock.objects.all()}
+            return render(request, 'welcome/edit_portfolio.html', context)
 
 def edit_portfolio(request, portfolioID):
         port = Portfolio.objects.get(title=portfolioID)
@@ -169,22 +339,130 @@ def edit_portfolio(request, portfolioID):
             form.Portfolio = port
             tempform = form.save(commit = False)
             tempform.portfolio = port
+            tempform.value = Stock.objects.get(ticker=tempform.ticker).price
             tempform.save()
             form = AssetForm()
             print("form saved!")
         else:
             print("invalid form?")
-        context = {'portfolio':Portfolio.objects.get(title=portfolioID), 'stocks':Portfolio.objects.get(title=''+portfolioID).stockasset_set.all(), 'form':form, 'portfolioID':portfolioID}
+        context = {'portfolio':Portfolio.objects.get(title=portfolioID), 'stocks':Portfolio.objects.get(title=''+portfolioID).stockasset_set.all(), 'form':form, 'portfolioID':portfolioID, 'volatiles':Stock.objects.all()}
         return render(request, 'welcome/edit_portfolio.html', context)
 
 def view_portfolio(request, portfolioID):
     portfolio = Portfolio.objects.get(title=''+portfolioID)
     stocks = portfolio.stockasset_set.all()
+    portfolio.sunkvalue = 0
+    portfolio.value = 0
+    for stock in stocks:
+        portfolio.sunkvalue = portfolio.sunkvalue + (stock.buyPrice * stock.quantity)
+        portfolio.value = portfolio.value + (stock.value * stock.quantity)
+        portfolio.earnings = round(portfolio.value - portfolio.sunkvalue,2)
+        portfolio.change = round(((portfolio.value - portfolio.sunkvalue) / portfolio.sunkvalue)*100,2)
+        stock.earnings = round((stock.value - stock.buyPrice)*stock.quantity, 2)
+        stock.change = round(((stock.value - stock.buyPrice)/stock.buyPrice)*100,2)
     for stock in stocks:
         print('stock')
     context = {'portfolio':portfolio,
-    'portfolioID':portfolioID, 'assets':stocks}
+    'portfolioID':portfolioID, 'assets':stocks, 'volatiles':Stock.objects.all()}
     return render(request, 'welcome/view_portfolio.html', context)
+
+
+def view_public_portfolio(request, portfolioID):
+    portfolio = PublicPortfolio.objects.get(title=''+portfolioID)
+    stocks = portfolio.publicstockasset_set.all()
+    portfolio.sunkvalue = 0
+    portfolio.value = 0
+    for stock in stocks:
+        print('stock')
+    context = {'portfolio':portfolio,
+    'portfolioID':portfolioID, 'assets':stocks, 'volatiles':Stock.objects.all()}
+    return render(request, 'welcome/view_public_portfolio.html', context)
+
+def view_screened(request, portfolioID):
+    portfolio = Screen.objects.get(title=''+portfolioID)
+    stocks = portfolio.screenasset_set.all()
+    for stock in stocks:
+        print('stock')
+    context = {'portfolio':portfolio,
+    'portfolioID':portfolioID, 'assets':stocks, 'volatiles':Stock.objects.all()}
+    return render(request, 'welcome/view_screened.html', context)
+
+def create_screen(request):
+        isLoggedIn = request.user.is_authenticated
+        if(isLoggedIn):
+            form = ScreenForm(request.POST or None)
+            if form.is_valid():
+                tempform = form.save(commit = False)
+                tempform.user = request.user
+                tempform.save()
+                form = ScreenForm()
+                print("form saved!")
+                return redirect('welcome-screens')
+            else:
+                print("invalid form?")
+                return render(request, 'welcome/create_portfolio.html', {'form': form, 'volatiles':Stock.objects.all()})
+            return redirect('welcome-screens')
+
+def remove_portfolio_asset(request, portfolioID):
+    portfolio = Portfolio.objects.get(title=''+portfolioID)
+    stocks = portfolio.stockasset_set.all()
+    portfolio.sunkvalue = 0
+    portfolio.value = 0
+    for stock in stocks:
+        portfolio.sunkvalue = portfolio.sunkvalue + (stock.buyPrice * stock.quantity)
+        portfolio.value = portfolio.value + (stock.value * stock.quantity)
+        portfolio.earnings = round(portfolio.value - portfolio.sunkvalue,2)
+        portfolio.change = round(((portfolio.value - portfolio.sunkvalue) / portfolio.sunkvalue)*100,2)
+        stock.earnings = round((stock.value - stock.buyPrice)*stock.quantity, 2)
+        stock.change = round(((stock.value - stock.buyPrice)/stock.buyPrice)*100,2)
+    context = {'portfolio':portfolio,
+    'portfolioID':portfolioID, 'assets':stocks, 'volatiles':Stock.objects.all()}
+    return render(request, 'welcome/remove_portfolio_asset.html', context)
+
+def add_to_portfolio(request, stockID): #WIP
+    portfolio = Portfolio.objects.get(title=''+portfolioID)
+    stocks = portfolio.stockasset_set.all()
+    portfolio.sunkvalue = 0
+    portfolio.value = 0
+    for stock in stocks:
+        portfolio.sunkvalue = portfolio.sunkvalue + (stock.buyPrice * stock.quantity)
+        portfolio.value = portfolio.value + (stock.value * stock.quantity)
+        portfolio.earnings = round(portfolio.value - portfolio.sunkvalue,2)
+        portfolio.change = round(((portfolio.value - portfolio.sunkvalue) / portfolio.sunkvalue)*100,2)
+        stock.earnings = round((stock.value - stock.buyPrice)*stock.quantity, 2)
+        stock.change = round(((stock.value - stock.buyPrice)/stock.buyPrice)*100,2)
+    for stock in stocks:
+        print('stock')
+    context = {'portfolio':portfolio,
+    'portfolioID':portfolioID, 'assets':stocks, 'volatiles':Stock.objects.all()}
+    return render(request, 'welcome/view_portfolio.html', context)
+
+def delete_selected_portfolio(request, portfolioID):
+    portfolio = Portfolio.objects.get(title=''+portfolioID)
+    stocks = portfolio.stockasset_set.all()
+    portfolio.sunkvalue = 0
+    portfolio.value = 0
+    for stock in stocks:
+        portfolio.sunkvalue = portfolio.sunkvalue + (stock.buyPrice * stock.quantity)
+        portfolio.value = portfolio.value + (stock.value * stock.quantity)
+        portfolio.earnings = round(portfolio.value - portfolio.sunkvalue,2)
+        portfolio.change = round(((portfolio.value - portfolio.sunkvalue) / portfolio.sunkvalue)*100,2)
+        stock.earnings = round((stock.value - stock.buyPrice)*stock.quantity, 2)
+        stock.change = round(((stock.value - stock.buyPrice)/stock.buyPrice)*100,2)
+    for stock in stocks:
+        print('stock')
+    context = {'portfolio':portfolio,
+    'portfolioID':portfolioID, 'assets':stocks, 'volatiles':Stock.objects.all()}
+    return render(request, 'welcome/delete_selected_portfolio.html', context)
+
+def deleting(request, portfolioID):
+    Portfolio.objects.get(title=''+portfolioID).delete()
+    return redirect('welcome-portfolio')
+
+def removing_portfolio_asset(request, portfolioID, stockID, stockCount):
+    portfolio = Portfolio.objects.get(title=''+portfolioID)
+    portfolio.stockasset_set.filter(quantity=stockCount, ticker=stockID).first().delete()
+    return redirect('welcome-portfolio')
 
 def buffer(subject):
     subjects=str(subject)
@@ -217,6 +495,8 @@ def fixVol(x):
     return float(x)
 
 def home(request):
+    #saveCHNDaily()
+    updateSurge()
     counter=0
     df = pd.read_csv('FinViz.csv', converters={'Change_x':removePerc, 'Market Cap_x':fixVol})
     df.dropna(inplace=True)
@@ -350,7 +630,8 @@ def about(request):
 
     context = {
         'stocks':Stock.objects.all(),
-        'DOW':dowlist
+        'DOW':dowlist,
+        'volatiles':Stock.objects.all()
 
     }
     return render(request, 'welcome/about.html',context)
@@ -377,7 +658,26 @@ def crypto(request):
     }
     return render(request, 'welcome/crypto.html',context)
 
+def chineseMarket(request):
 
+    dow = pd.read_csv('DOW.csv')
+    dow = dow.fillna(0)
+    dow.iloc[::-1]
+    dowlist = []
+    for i in dow.itertuples():
+        quickChange = (abs(i[5]-i[2])/((i[5]+i[2])/2))*100
+        if(i[2]>i[5]):
+            quickChange=quickChange*-1
+        date_time = datetime.strptime(i[1], '%Y-%m-%d')
+        stockRetrieve = SimpleStock(date = date_time, ticker='DOW',open=round(i[2],2),high=round(i[3],2),low=round(i[4],2),close=round(i[5],2),volume=round(i[7],2), change=round(quickChange,4))
+        dowlist.append(stockRetrieve)
+
+
+    context = {
+        'stocks':ChinaStock.objects.all(),
+        'DOW':dowlist, 'volatiles':Stock.objects.all()
+    }
+    return render(request, 'welcome/chineseMarket.html',context)
 
 
 
@@ -409,6 +709,17 @@ def demo_plot_view(request):
     return render(request, 'welcome/demo-plot.html',
                   context)
 
+def groups(request):
+    volumeSurge = []
+    for stock in Stock.objects.all():
+        print('looking')
+        if stock.volume > stock.averagevolume*1.3:
+            volumeSurge.append(stock)
+            print('yes!')
+        context = {'stocks':volumeSurge}
+    return render(request, 'welcome/groups.html', context)
+
+
 def maps(request):
     df = pd.read_csv('FinViz.csv', converters={'Change_x':removePerc, 'Market Cap_x':fixVol})
     df.dropna(inplace=True)
@@ -416,6 +727,7 @@ def maps(request):
     rangeBounding = [-1.5,1.5]
     fig = px.treemap(df,
                  path=['Sector', 'Industry', 'Ticker'],
+                 hover_name='Ticker',
                  labels='Change_x',
                  values='Market Cap_x',
                  color='Change_x',
@@ -428,12 +740,39 @@ def maps(request):
                  height=800
                 )
 
-
-
+    fig.data[0].textinfo = 'label+text+value+percent entry'
     fig.update_layout(margin = dict(t=0, l=0, r=0, b=0), paper_bgcolor="#fafafa")
     graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+# chinadata start
+    df = pd.read_csv('newchina.csv')
+    df.dropna(inplace=True)
+
+    rangeBounding = [-1.5,1.5]
+    fig = px.treemap(df,
+                 path=['area', 'industry', 'name'],
+                 hover_name='name',
+                 labels='name',
+                 values='list_date',
+                 color='list_date',
+                 color_continuous_scale='rdylgn',
+                 maxdepth=2,
+                 branchvalues='total',
+                 range_color=rangeBounding,
+                 color_continuous_midpoint=0,
+                 width=1600,
+                 height=800
+                )
+
+    fig.data[0].textinfo = 'label+text+value+percent entry'
+    fig.update_layout(margin = dict(t=0, l=0, r=0, b=0), paper_bgcolor="#fafafa")
+    graphdiv2 = opy.plot(fig, auto_open=False, output_type='div')
+
+#chinadata end
+
 
     context = {
-    'graph':graphdiv
+    'graph':graphdiv,
+    'graph2':graphdiv2,
+    'volatiles':Stock.objects.all()
     }
     return render(request, 'welcome/maps.html', context)

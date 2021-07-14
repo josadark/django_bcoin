@@ -12,6 +12,9 @@ from .models import IPO
 from .models import CryptoStock
 from .models import Portfolio
 from .models import StockAsset
+from .models import PublicPortfolio
+from .models import Screen
+from .models import ScreenAsset
 
 # Register models here.
 admin.site.register(Post)
@@ -26,3 +29,6 @@ admin.site.register(IPO)
 admin.site.register(CryptoStock)
 admin.site.register(Portfolio)
 admin.site.register(StockAsset)
+admin.site.register(PublicPortfolio)
+admin.site.register(Screen)
+admin.site.register(ScreenAsset)

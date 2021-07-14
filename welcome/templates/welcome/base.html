@@ -3,6 +3,9 @@
 <html>
 <head>
 <style>
+
+
+
 .nav-item{
   transition : transform 200ms;
 }
@@ -10,6 +13,7 @@
   transform : scale(1.1);
   background-color : maroon;
 }
+
 
 .scroll-left {
  height: 30px;
@@ -110,14 +114,15 @@
               <!---<a class="nav-item nav-link" href="{% url 'welcome-home' %}">Home</a>--->
               <!--<a class="nav-item nav-link" href="{% url 'welcome-about' %}">Screener</a>-->
               <a class="nav-item nav-link" href="{% url 'welcome-about' %}">US Screener</a>
-              <a class="nav-item nav-link" href="{% url 'welcome-about' %}">CHN Screener</a>
+              <a class="nav-item nav-link" href="{% url 'chineseMarket' %}">CHN Screener</a>
               <a class="nav-item nav-link" href="{% url 'welcome-crypto' %}">Crypto Screener</a>
               <!--<a class="nav-item nav-link" href="{% url 'welcome-about' %}">Groups</a>-->
               <a class="nav-item nav-link" href="{% url 'welcome-maps' %}">Maps</a>
-              <a class="nav-item nav-link" href="{% url 'welcome-demo' %}">Groups</a>
+              <a class="nav-item nav-link" href="{% url 'groups' %}">Groups</a>
               {%if user.is_authenticated%}
-              <a class="nav-item nav-link" >Watchlist</a>
-              <a class="nav-item nav-link" href="{% url 'welcome-portfolio' %}">Portfolios</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-portfolio' %}">Asset Book</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-suggestions' %}">Suggestions</a>
+              <a class="nav-item nav-link" href="{% url 'welcome-screens' %}">Custom Screens</a>
               {%endif%}
             </div>
             <!-- Navbar Right Side -->
