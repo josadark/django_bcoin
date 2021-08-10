@@ -419,7 +419,7 @@
     $('#table_id tbody').on('click', 'tr', function () {
         var data = table.row( this ).data();
         //alert( 'You clicked on '+data[0]+'\'s row' );
-        window.location = "http://localhost:8000/cryptoview/"+data[0]+"/";
+        window.location = "/cryptoview/"+data[0]+"/";
     } );
 
 

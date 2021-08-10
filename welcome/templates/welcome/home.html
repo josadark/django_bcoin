@@ -21,33 +21,102 @@
 {% static 'welcome/js/heatmap.js' %}
 {% block content %}
 
+<style>
+.nav {
+  background-color: darkred;
+  box-shadow: 0 5px 0 maroon;
+  color: white;
+  padding: 1em 1.5em;
+  position: relative;
+  text-decoration: none;
+  text-transform: uppercase;
+  width: 200px;
+  height: 60px;
+  display:inline-block;
+}
+
+.nav:hover {
+  background-color: #ce0606;
+}
+
+.nav:active {
+  box-shadow: none;
+  top: 5px;
+}
+
+.flex-container {
+    display: flex;
+}
+.flex-child {
+    flex: 1;
+    margin-right: 3px;
+}
+.flex-child:first-child {
+    margin-right: 0px;
+}
+}
+</style>
+
 <html>
 <head></head>
  <body>
    <div>
+     <h3>User's Homepage</h3>
+     <p>AInvest homepage is still under construction, but will still act as a utility for the user to interact with his or her assets and quickly preview earning reports. See the content below for quick access to your user interactions.</p>
+     <hr>
+     <div class="flex-container">
 
-     {% if graph %}
-     <div style="width:600;height:500">
-       {{ graph|safe }}
+       <div class="flex-child">
+         <h4>Asset Book</h4>
+         <p>Utilize AInvest to simulate the buying and selling of stocks via the asset book option</p>
+         <a class="nav" href="http://localhost:8000/portfolio/">See More</a>
+       </div>
+       <div class="flex-child">
+         <h4>Custom Screening</h4>
+         <p>Create custom screens to filter live data for easier access to information</p>
+         <a class="nav" href="http://localhost:8000/screens/">See More</a>
+       </div>
+       <div class="flex-child">
+         <h4>Suggested Stocks</h4>
+         <p>Recieve insights from the AInvest signal detection to make more informed investment decisions</p>
+         <a class="nav" href="http://localhost:8000/suggestions/">See More</a>
+       </div>
      </div>
-     {% endif %}
-        </div><!--- ROW DONE --->
+     <hr>
+     <h3>Dashboard</h3>
+     <p>Quickly view your holdings</p>
+     <hr>
+     <h3>Suggestions</h3>
+     <p>Live suggestions from our surge signal detection</p>
+      <table id = "surge" class="display">
+        <thead>
+            <tr>
+                <th>Ticker</th>
+                <th>Volume</th>
+                <th>Cost (USD) </th>
+            </tr>
+        </thead>
+        <tbody>
+          <!--- need for blocks to retrieve data here --->
+          {%for stock in surge%}
+            <tr>
+                <td>{{ stock.ticker }}</td>
+                <td>{{ stock.volume }}</td>
+                <td style="color:green;">{{stock.value}}</td>
+            </tr>
+          {%endfor%}
+        </tbody>
+    </table>
+     <hr>
+     <h3>General Stocks</h3>
+     <p>This is a set of general assets for quick viewing outside of the main screener page</p>
 
-        <div style="display: table-row; height: 100px;"><!--- ROW BEGIN --->
-          <div style="width: 1%; display: table-cell;">
 
-          </div>
-          <div style="display: table-cell;">
 
-          </div>
-          <div style="display: table-cell;">
-
-          </div>
-        </div><!--- ROW DONE --->
 
         <div style="display: table-row; height: 100px;"> <!--- ROW BEGIN --->
           <div style="width: 30%; display: table-cell;">
-              <h2>EARNERS</h2>
+              <h5>General Earning</h5>
                   <table id="earners" class="display">
                       <thead>
                           <tr>
@@ -79,7 +148,7 @@
           <div style = "width: 5%; display: table-cell:">
           </div>
           <div style="width: 30%; display: table-cell;">
-              <h2>LOSERS</h2>
+              <h5>General Losing</h5>
               <table id="losers" class="display">
                   <thead>
                       <tr>
@@ -111,7 +180,7 @@
             <div style = "width: 5%; display: table-cell:">
             </div>
               <div style="width: 30%; display: table-cell;">
-                  <h2>FINANCIAL</h2>
+                  <h5>Financial Sector</h5>
                   <table id="financial" class="display">
                       <thead>
                           <tr>
@@ -142,12 +211,13 @@
               </div>
             </div> <!--- ROW DONE --->
           </div>
-        </div> <!--- ROW DONE --->
 
-
+        <hr>
+        <h4>Upcoming Assets</h4>
+        <p>a list of upcoming stocks</p>
         <div style="display: table-row; height: 100px;"> <!--- ROW BEGIN --->
-          <div style="width: 45%; display: table-cell;">
-              <h2>IPO List</h2>
+          <div style="width: 100%; display: table-cell;">
+              <h5>IPO List</h5>
               <h7 style = "color:grey;">(Initial Public Offering)</h7>
                   <table id="volatiles" class="display">
                       <thead>
@@ -182,66 +252,6 @@
                   </table>
           </div>
           <div style = "width: 10%; display: table-cell:">
-          </div>
-          <div style="width: 45%; display: table-cell;">
-              <h2>LONGS</h2>
-              <table id="steady" class="display">
-                  <thead>
-                      <tr>
-                          <th>Ticker</th>
-                          <th>Volume</th>
-                          <th>High</th>
-                          <th>Low</th>
-                          <th>(%)</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                    <!--- need for blocks to retrieve data here --->
-                    {%for stock in steady%}
-                      <tr>
-                          <td>{{ stock.ticker }}</td>
-                          <td>{{ stock.volume }}</td>
-                          <td>{{ stock.high }}</td>
-                          <td>{{ stock.low }}</td>
-                          {% if stock.change > 0 %}
-                          <td style="color:green;">{{stock.change}}</td>
-                          {% else %}
-                          <td style="color:red;">{{stock.change}}</td>
-                          {%endif%}
-                      </tr>
-                    {%endfor%}
-                  </tbody>
-              </table>
-          </div>
-          <div style="width: 45%; display: table-cell;">
-              <h2>TECHNOLOGY</h2>
-                  <table id="tech" class="display">
-                      <thead>
-                          <tr>
-                              <th>Ticker</th>
-                              <th>Volume</th>
-                              <th>High</th>
-                              <th>Low</th>
-                              <th>(%)</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                        <!--- need for blocks to retrieve data here --->
-                        {%for stock in tech%}
-                          <tr>
-                              <td>{{ stock.ticker }}</td>
-                              <td>{{ stock.volume }}</td>
-                              <td>{{ stock.high }}</td>
-                              <td>{{ stock.low }}</td>
-                              {% if stock.change > 0 %}
-                              <td style="color:green;">{{stock.change}}</td>
-                              {% else %}
-                              <td style="color:red;">{{stock.change}}</td>
-                              {%endif%}
-                          </tr>
-                        {%endfor%}
-                      </tbody>
-                  </table>
           </div>
         </div> <!--- ROW DONE --->
 
@@ -280,6 +290,10 @@
     "dom": 'tp',
     pageLength:10
   });
+  var surge = $('#surge').DataTable({
+    "dom": 'tp',
+    pageLength:10
+  });
 
   $(document).ready( function () {
   earners;
@@ -288,7 +302,15 @@
   steady;
   tech;
   financial;
+  surge;
   });
+
+  $('#surge tbody').on('click', 'tr', function () {
+      var data = table.row( this ).data();
+      //alert( 'You clicked on '+data[0]+'\'s row' );
+      window.location = "http://localhost:8000/stockview/"+data[0];
+  } );
+
 
 </script>>
 

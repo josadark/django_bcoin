@@ -40,6 +40,12 @@ class Screen(models.Model):
     maxValue = models.FloatField(default=99999.99)
     minVolume = models.FloatField(default=0.00)
     maxVolume = models.FloatField(default = 99990.99)
+    maxChange = models.FloatField(default = 300.0)
+    minChange = models.FloatField(default = -300.0)
+    minShortRatio = models.FloatField(default = 0)
+    maxShortRatio = models.FloatField(default = 100)
+    minRelativeVolume = models.FloatField(default = 0)
+    maxRelativeVolume = models.FloatField(default = 100)
     #assets = models.ManyToManyField(StockAsset, blank=True)
     def __str__(self):
         return self.title

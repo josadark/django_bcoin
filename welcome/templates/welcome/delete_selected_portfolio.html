@@ -35,9 +35,9 @@ a.button {
 {% block content %}
 {% if user.is_authenticated %}
 
-<a href="http://localhost:8000/deleting/{{portfolioID}}/" class="button">Yes, Delete this Portfolio</a>
+<a href="/deleting/{{portfolioID}}/" class="button">Yes, Delete this Portfolio</a>
 <br>
-<a href="http://localhost:8000/delete_portfolio/" class="button">No, Take me back</a>
+<a href="/delete_portfolio/" class="button">No, Take me back</a>
 
 
 
@@ -108,7 +108,7 @@ a.button {
     $('#table_id tbody').on('click', 'tr', function () {
         var data = table.row( this ).data();
         //alert( 'You clicked on '+data[0]+'\'s row' );
-        window.location = "http://localhost:8000/stockview/"+data[0];
+        window.location = "/stockview/"+data[0];
     } );
 
 

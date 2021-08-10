@@ -121,7 +121,7 @@
     $('#public_portfolios tbody').on('click', 'tr', function () {
         var data = table.row( this ).data();
         //alert( 'You clicked on '+data[0]+'\'s row' );
-        window.location = "http://localhost:8000/view_portfolio/"+data[0];
+        window.location = "/view_portfolio/"+data[0];
     } );
 
 
@@ -140,15 +140,14 @@
 
     <br>
     <br>
-    <a class="nav" href="http://localhost:8000/create_portfolio/">Create custom portfolio subscription</a>
+    <a class="nav" href="/create_portfolio/">Create custom portfolio subscription</a>
     <br>
     <br>
-    <a class="nav" href="http://localhost:8000/delete_portfolio/">Unsubscribe from a portfolio</a>
+    <a class="nav" href="/delete_portfolio/">Unsubscribe from a portfolio</a>
 
     {% if graph %}
     <div style="width:1200;height:1000;display:inline">
     {{ graph|safe }}
-    {{ graph2|safe }}
     </div>
     {% endif %}
 

@@ -42,29 +42,35 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from background_task import background
 
-@background(schedule=1)
+@background(schedule=10)
 def notify():
-    print("the croncops on patrol!")
-    saveHistorical()
-    print("done.")
+    print("strt!")
+#    saveHistorical()
+#    print("done.")
     saveDaily()
+    print('done')
+    return
+
+@background(schedule=10)
+def repUpdateSurge():
+    print('surge updated')
     return
 
 def updateSurge(): #updates surgeportfolio -- also updates customscreens
-    PublicPortfolio.objects.all().delete()
-    formattedPortfolio = PublicPortfolio(title = 'Surge_Recommendations', description = 'Assets which show a sharp increase in volume within a 10 day trading period', sunkvalue = 0, value = 0, change = 0, earnings = 0)
-    formattedPortfolio.save()
-    for stock in Stock.objects.all():
-        if stock.volume > stock.averagevolume:
-            print(stock.ticker)
-            asset = PublicStockAsset(ticker = stock.ticker, portfolio = PublicPortfolio.objects.get(title="Surge_Recommendations"), volume = stock.volume, value = stock.price)
-            asset.save();
     for screen in Screen.objects.all():
         screen.screenasset_set.all().delete()
         for stock in Stock.objects.all():
             if stock.volume > screen.minVolume and stock.volume < screen.maxVolume and stock.price > screen.minValue and stock.price < screen.maxValue:
                 screenasset = ScreenAsset(value = stock.price, volume = stock.volume, ticker = stock.ticker, screen = screen)
                 screenasset.save()
+
+def updateScreens():
+        for screen in Screen.objects.all():
+            screen.screenasset_set.all().delete()
+            for stock in Stock.objects.all():
+                if stock.volume > screen.minVolume and stock.volume < screen.maxVolume and stock.price > screen.minValue and stock.price < screen.maxValue:
+                    screenasset = ScreenAsset(value = stock.price, volume = stock.volume, ticker = stock.ticker, screen = screen)
+                    screenasset.save()
 
 def saveCryptoDaily():
         CryptoStock.objects.all().delete()
@@ -181,6 +187,7 @@ def portfolio_view(request):
     portfolioNames=[]
     portfolioValues=[]
     portfolioCosts=[]
+    portfolioGains=[]
     if(isLoggedIn):
         portfolio = request.user.profile.portfolio.all()
         portfolio = Portfolio.objects.all()
@@ -199,12 +206,17 @@ def portfolio_view(request):
             portfolioNames.append(i.title)
             portfolioValues.append(i.value)
             portfolioCosts.append(i.sunkvalue)
+            portfolioGains.append(i.earnings)
             print('loaded!')
-
-        fig = make_subplots(rows=1, cols=2, specs=[[{"type":"pie"}, {"type":"pie"}]])
+        colors = ['gold', 'mediumturquoise', 'darkorange', 'lightgreen']
+        fig = make_subplots(rows=1, cols=3, specs=[[{"type":"pie"}, {"type":"pie"}, {"type":"pie"}]], subplot_titles=("Portfolio Values","Portfolio Costs", "Portfolio Gains"), horizontal_spacing=.25)
         fig.add_trace(go.Pie(labels=portfolioNames, values=portfolioValues), row=1, col=1)
         fig.add_trace(go.Pie(labels=portfolioNames, values=portfolioCosts), row=1, col=2)
-        fig.update_layout(height=600, width=800, title_text="Total Portfolio Values versus Sunk Cost")
+        fig.add_trace(go.Pie(labels=portfolioNames, values=portfolioGains), row=1, col=3)
+        fig.update_layout(height=500, width=1200, title_text="")
+        fig.update_layout(margin = dict(t=0, l=0, r=0, b=0), paper_bgcolor="#fafafa")
+        fig.update_traces(hoverinfo='label+percent', textinfo='label', textfont_size=20,
+                  marker=dict(colors=colors, line=dict(color='#000000', width=2)))
         div = opy.plot(fig, auto_open=False, output_type='div')
 
         publicPortfolios = PublicPortfolio.objects.all()
@@ -353,6 +365,10 @@ def view_portfolio(request, portfolioID):
     stocks = portfolio.stockasset_set.all()
     portfolio.sunkvalue = 0
     portfolio.value = 0
+    stockNames = []
+    stockValues = []
+    stockGains = []
+    stockCosts = []
     for stock in stocks:
         portfolio.sunkvalue = portfolio.sunkvalue + (stock.buyPrice * stock.quantity)
         portfolio.value = portfolio.value + (stock.value * stock.quantity)
@@ -360,10 +376,28 @@ def view_portfolio(request, portfolioID):
         portfolio.change = round(((portfolio.value - portfolio.sunkvalue) / portfolio.sunkvalue)*100,2)
         stock.earnings = round((stock.value - stock.buyPrice)*stock.quantity, 2)
         stock.change = round(((stock.value - stock.buyPrice)/stock.buyPrice)*100,2)
+        stockNames.append(stock.ticker)
+        stockValues.append(stock.value)
+        stockGains.append(stock.earnings)
+        stockCosts.append(stock.buyPrice)
     for stock in stocks:
         print('stock')
+
+    colors = ['gold', 'mediumturquoise', 'darkorange', 'lightgreen']
+    fig = make_subplots(rows=1, cols=3, specs=[[{"type":"pie"}, {"type":"pie"}, {"type":"pie"}]], subplot_titles=("Values","Costs", "Gains"), horizontal_spacing=.1)
+    fig.add_trace(go.Pie(labels=stockNames, values=stockValues), row=1, col=1)
+    fig.add_trace(go.Pie(labels=stockNames, values=stockCosts), row=1, col=2)
+    fig.add_trace(go.Pie(labels=stockNames, values=stockGains), row=1, col=3)
+    fig.update_layout(height=500, width=1200, title_text="")
+    fig.update_layout(margin = dict(t=0, l=0, r=0, b=0), paper_bgcolor="#fafafa")
+    fig.update_traces(hoverinfo='label+percent', textinfo='label', textfont_size=20,
+              marker=dict(colors=colors, line=dict(color='#000000', width=2)))
+    div = opy.plot(fig, auto_open=False, output_type='div')
+
+
+
     context = {'portfolio':portfolio,
-    'portfolioID':portfolioID, 'assets':stocks, 'volatiles':Stock.objects.all()}
+    'portfolioID':portfolioID, 'assets':stocks, 'volatiles':Stock.objects.all(), 'graph':div}
     return render(request, 'welcome/view_portfolio.html', context)
 
 
@@ -397,6 +431,7 @@ def create_screen(request):
                 tempform.save()
                 form = ScreenForm()
                 print("form saved!")
+                updateScreens()
                 return redirect('welcome-screens')
             else:
                 print("invalid form?")
@@ -471,7 +506,8 @@ def buffer(subject):
     if '%' in subjects:
         return float(subjects.split("%")[0])
     elif 'M' in subjects:
-        return float(subjects.split('M')[0])*1000000
+        if subjects.split('M')[0] is not '':
+            return float(subjects.split('M')[0])*1000000
     elif 'B' in subjects:
         return float(subjects.split('B')[0])*100000000
     elif 'K' in subjects:
@@ -495,8 +531,12 @@ def fixVol(x):
     return float(x)
 
 def home(request):
+    notify()
+    #saveDaily()
     #saveCHNDaily()
-    updateSurge()
+    #updateSurge()
+    print('repup')
+    #repUpdateSurge(repeat=120, repeat_until=None)
     counter=0
     df = pd.read_csv('FinViz.csv', converters={'Change_x':removePerc, 'Market Cap_x':fixVol})
     df.dropna(inplace=True)
@@ -511,7 +551,7 @@ def home(request):
                  branchvalues='total',
                  range_color=rangeBounding,
                  color_continuous_midpoint=0,
-                 width=700,
+                 width=100,
                  height=450
                 )
     fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
@@ -524,6 +564,8 @@ def home(request):
     tech = []
     financial = []
     IPOlist = []
+    relavent = []
+    surge=[]
     news = ''''''
     for stock in Stock.objects.all():
         news=news+stock.ticker+' '+str(stock.change)+' | '
@@ -543,6 +585,9 @@ def home(request):
     for stock in IPO.objects.all():
         IPOlist.append(stock)
 
+    for stock in PublicPortfolio.objects.first().publicstockasset_set.all():
+        surge.append(stock)
+
     context = {
         'stocks':Stock.objects.all(),
         'earners':earners,
@@ -553,7 +598,8 @@ def home(request):
         'financial':financial,
         'ipos':IPOlist,
         'news':news,
-        'graph':graphdiv
+        'graph':graphdiv,
+        'surge':surge
     }
 
 
@@ -595,7 +641,7 @@ def grabcsv(request, csvID):
 
 
 def about(request):
-
+    notify()
     #saveCryptoDaily()
     #saveIPO()
 

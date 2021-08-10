@@ -35,13 +35,13 @@ a.button {
 {% block content %}
 {% if user.is_authenticated %}
 
-<a href="http://localhost:8000/edit_portfolio/{{portfolioID}}/" class="button">Add Asset</a>
+<a href="/edit_portfolio/{{portfolioID}}/" class="button">Add Asset</a>
 <br>
-<a href="http://localhost:8000/portfolio/" class="button">Return</a>
+<a href="/portfolio/" class="button">Return</a>
 <br>
-<a href="http://localhost:8000/remove_portfolio_asset/{{portfolioID}}/" class="button">Remove Asset</a>
+<a href="/remove_portfolio_asset/{{portfolioID}}/" class="button">Remove Asset</a>
 <br>
-<a href="http://localhost:8000/edit_portfolio_fields/{{portfolioID}}" class="button">Edit Name and Description</a>
+<a href="/edit_portfolio_fields/{{portfolioID}}" class="button">Edit Name and Description</a>
 
 
 
@@ -112,7 +112,7 @@ a.button {
     $('#table_id tbody').on('click', 'tr', function () {
         var data = table.row( this ).data();
         //alert( 'You clicked on '+data[0]+'\'s row' );
-        window.location = "http://localhost:8000/stockview/"+data[0];
+        window.location = "/stockview/"+data[0];
     } );
 
 
@@ -128,8 +128,11 @@ a.button {
 
 
     </script>>
-
-
+    {% if graph %}
+    <div style="width:1200;height:1000;display:inline">
+    {{ graph|safe }}
+    </div>
+    {% endif %}
 
 {%else%}
 You must be logged into an active account to access portfolios

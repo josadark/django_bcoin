@@ -35,14 +35,9 @@ a.button {
 {% block content %}
 {% if user.is_authenticated %}
 
-<a href="http://localhost:8000/edit_portfolio/{{portfolioID}}/" class="button">Add Asset</a>
+<a href="/edit_portfolio/{{portfolioID}}/" class="button">Subscribe</a>
 <br>
-<a href="http://localhost:8000/portfolio/" class="button">Return</a>
-<br>
-<a href="http://localhost:8000/remove_portfolio_asset/{{portfolioID}}/" class="button">Remove Asset</a>
-<br>
-<a href="http://localhost:8000/edit_portfolio_fields/{{portfolioID}}" class="button">Edit Name and Description</a>
-
+<a href="/suggestions/" class="button">Return</a>
 
 
 <div>
@@ -60,11 +55,7 @@ a.button {
         <thead>
             <tr>
                 <th>Asset</th>
-                <th>Quantity</th>
-                <th>Buy Price</th>
-                <th>Current Value</th>
-                <th>Change (%)</th>
-                <th>Earnings ($)</th>
+                <th>Volume</th>
             </tr>
         </thead>
         <tbody>
@@ -72,30 +63,12 @@ a.button {
           {%for asset in assets%}
             <tr>
                 <td>{{ asset.ticker }}</td>
-                <td>{{ asset.quantity }}</td>
-                <td>{{asset.buyPrice}}</td>
-                <td>{{asset.value}}</td>
-                {%if asset.change > 0%}
-                <td style="color:green; background:honeydew;">{{asset.change}}</td>
-                <td style="color:green; background:honeydew;">{{asset.earnings}}</td>
-                {%elif asset.change < 0%}
-                <td style="color:red; background:mistyrose;">{{asset.change}}</td>
-                <td style="color:red; background:mistyrose;">{{asset.earnings}}</td>
-                {%else%}
-                <td>{{asset.change}}</td>
-                <td>{{asset.earnings}}</td>
-                {%endif%}
+                <td>{{asset.volume}}</td>
             </tr>
           {%endfor%}
         </tbody>
         <tfoot>
           <tr>
-            <th>Asset</th>
-            <th>Quantity</th>
-            <th>Buy Price</th>
-            <th>Current Value</th>
-            <th>Change (%)</th>
-            <th>Earnings ($)</th>
           </tr>
         </tfoot>
     </table>
@@ -112,7 +85,7 @@ a.button {
     $('#table_id tbody').on('click', 'tr', function () {
         var data = table.row( this ).data();
         //alert( 'You clicked on '+data[0]+'\'s row' );
-        window.location = "http://localhost:8000/stockview/"+data[0];
+        window.location = "/stockview/"+data[0];
     } );
 
 

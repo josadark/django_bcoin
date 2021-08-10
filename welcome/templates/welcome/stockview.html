@@ -150,7 +150,7 @@ Industry : {{stock.industry}} <br>
   chart.padding(0, 15, 0, 15);
 
   // Load data
-  chart.dataSource.url = "http://localhost:8000/grabcsv/"+"{{stockID|safe}}"+"/";
+  chart.dataSource.url = "/grabcsv/"+"{{stockID|safe}}"+"/";
   chart.dataSource.parser = new am4core.CSVParser();
   chart.dataSource.parser.options.useColumnNames = true;
   chart.dataSource.parser.options.reverse = false;

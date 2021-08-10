@@ -57,7 +57,7 @@
   chart.padding(0, 15, 0, 15);
 
   // Load data
-  chart.dataSource.url = "http://localhost:8000/grabcsv/AAN";
+  chart.dataSource.url = "/grabcsv/AAN";
   chart.dataSource.parser = new am4core.CSVParser();
   chart.dataSource.parser.options.useColumnNames = true;
   chart.dataSource.parser.options.reverse = false;
