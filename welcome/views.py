@@ -1,4 +1,5 @@
 import csv
+import os
 from django.shortcuts import render
 from .models import Post
 from .models import Stock
@@ -55,6 +56,114 @@ def notify():
 def repUpdateSurge():
     print('surge updated')
     return
+
+#def generateGraphImages():
+#
+#    if not os.path.exists("images"):
+#        os.mkdir("images")
+#
+#    df = pd.read_csv('landingpad/Yahoo/A.csv')
+#    df.dropna(inplace=True)
+#
+#
+#    fig = go.Figure(data=[go.Candlestick(x=df['Date'],
+#                open=df['Open'],
+#                high=df['High'],
+#                low=df['Low'],
+#                close=df['Close'])])
+#
+#    fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
+#    graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+#
+#    fig.write_image("images/fig1.png")
+#
+#    return
+
+def generateGraphImages():
+        print("generating Graph")
+        response = HttpResponse(
+            content_type='image/png',
+            headers={'Content-Disposition': 'attachment; filename="graphImage.png"'},
+        )
+
+        if not os.path.exists("images"):
+            os.mkdir("images")
+
+        df = pd.read_csv('landingpad/Yahoo/A.csv')
+        df.dropna(inplace=True)
+
+
+        fig = go.Figure(data=[go.Candlestick(x=df['Date'],
+                    open=df['Open'],
+                    high=df['High'],
+                    low=df['Low'],
+                    close=df['Close'])])
+
+        fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
+        graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+
+        fig.write_image("images/fig1.png")
+
+        return
+
+def generateGraphImages(request, csvID):
+
+    print("generating Graph")
+    response = HttpResponse(
+        content_type='image/png',
+        headers={'Content-Disposition': 'attachment; filename="graphImage.png"'},
+    )
+
+    if not os.path.exists("images"):
+        os.mkdir("images")
+
+    df = pd.read_csv('landingpad/Yahoo/'+csvID+'.csv')
+    df.dropna(inplace=True)
+
+
+    fig = go.Figure(data=[go.Candlestick(x=df['Date'],
+                open=df['Open'],
+                high=df['High'],
+                low=df['Low'],
+                close=df['Close'])])
+
+    fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
+    graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+    fig.write_image('images/'+csvID+'.png')
+    fig.write_image(response)
+
+    return response
+
+
+#    def generateGraphImages(request, csvID):
+#
+#        print("generating Graph")
+#        response = HttpResponse(
+#            content_type='image/png',
+#            headers={'Content-Disposition': 'attachment; filename="graphImage.png"'},
+#        )
+#
+#        if not os.path.exists("images"):
+#            os.mkdir("images")
+#
+#        df = pd.read_csv('landingpad/Yahoo/A.csv')
+#        df.dropna(inplace=True)
+#
+#
+#        fig = go.Figure(data=[go.Candlestick(x=df['Date'],
+#                    open=df['Open'],
+#                    high=df['High'],
+#                    low=df['Low'],
+#                    close=df['Close'])])
+#
+#        fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
+#        graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+#
+#        fig.write_image(response)
+#
+#        return response
+
+
 
 def updateSurge(): #updates surgeportfolio -- also updates customscreens
     for screen in Screen.objects.all():

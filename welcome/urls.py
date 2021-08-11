@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'^stockview/(?P<stockID>\w+)/$', views.stockview, name='stock-view'),
     url(r'^cryptoview/(?P<stockID>\w+)/$', views.cryptoview, name='cryptoview'),
     url(r'^grabcsv/(?P<csvID>\w+)/$', views.grabcsv, name='grabcsv'),
+    url(r'^genGraph/(?P<csvID>\w+)/$', views.generateGraphImages, name='generateGraphImages'),
     url(r'^edit_portfolio/(?P<portfolioID>\w+)/$', views.edit_portfolio, name='edit_portfolio'),
     url(r'^edit_portfolio_fields/(?P<portfolioID>\w+)/$', views.edit_portfolio_fields, name='edit_portfolio_fields'),
     url(r'^view_portfolio/(?P<portfolioID>\w+)/$', views.view_portfolio, name='view_portfolio'),
