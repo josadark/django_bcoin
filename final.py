@@ -18,7 +18,7 @@ def read_lines(file_path):
     return lines
 def dataUpdate(tickerList,directory):
     g = read_lines(tickerList)
-    today = datetime.date.today()
+    today = datetime.date.today().strftime("%Y-%m-%d")
     with open(directory + 'daily'+ today+'.csv', 'w') as csvfile:
         twriter = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         for i in data:
