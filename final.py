@@ -64,6 +64,6 @@ def tushareUpdate():
 
 
 if __name__ == '__main__':
-    dataUpdate('tickerlists/yahootickers.txt','landingpad/yahooTEst/')
-    crytoUpdate()
-    tushareUpdate()
+    dataUpdate('tickerlists/yahootickers.txt','landingpad/Crypto/')
+    #crytoUpdate()
+    #tushareUpdate()
