@@ -16,6 +16,7 @@ from .models import PublicPortfolio
 from .models import Screen
 from .models import ScreenAsset
 from .models import PublicStockAsset
+from .models import ChinaStock
 
 # Register models here.
 admin.site.register(Post)
@@ -34,3 +35,4 @@ admin.site.register(PublicPortfolio)
 admin.site.register(Screen)
 admin.site.register(ScreenAsset)
 admin.site.register(PublicStockAsset)
+admin.site.register(ChinaStock)

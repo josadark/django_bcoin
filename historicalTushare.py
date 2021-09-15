@@ -28,7 +28,7 @@ def maintask():
 
 if __name__ == '__main__':
     #Set start date
-    startdate = '19980101'
-    enddate = '20200630'
+    startdate = '19980101' # Arbitrary start date
+    enddate = '20210901' # Adjust to current day
     #main program
     maintask()

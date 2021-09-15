@@ -79,7 +79,13 @@ def repUpdateSurge():
 #
 #    return
 
-def generateGraphImages():
+def createList():
+    file = open("NEWLIST.txt","a")
+    for stock in CryptoStock.objects.all():
+        file.write(stock.ticker+'\n')
+    file.close()
+
+def generateCHNGraphImages():
         print("generating Graph")
         response = HttpResponse(
             content_type='image/png',
@@ -87,24 +93,54 @@ def generateGraphImages():
         )
 
         if not os.path.exists("images"):
-            os.mkdir("images")
+            os.mkdir("CHNImages")
 
-        df = pd.read_csv('landingpad/Yahoo/A.csv')
-        df.dropna(inplace=True)
+        for stock in ChinaStock.objects.all():
+            df = pd.read_csv('landingpad/China/'+stock.ts_code+'.csv', nrows=2000)
+            df.dropna(inplace=True)
+            df['tade_date'] = pd.to_datetime(df['trade_date'], errors='coerce')
 
+            fig = go.Figure(data=[go.Candlestick(x=df['trade_date'],
+                        open=df['open'],
+                        high=df['high'],
+                        low=df['low'],
+                        close=df['close'])])
 
-        fig = go.Figure(data=[go.Candlestick(x=df['Date'],
-                    open=df['Open'],
-                    high=df['High'],
-                    low=df['Low'],
-                    close=df['Close'])])
+            fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
+            graphdiv = opy.plot(fig, auto_open=False, output_type='div')
 
-        fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
-        graphdiv = opy.plot(fig, auto_open=False, output_type='div')
-
-        fig.write_image("images/fig1.png")
-
+            fig.write_image("CHNImages/"+stock.ts_code+".png")
         return
+
+def generateCryptoGraphImages():
+        print("generating Graph")
+        response = HttpResponse(
+            content_type='image/png',
+            headers={'Content-Disposition': 'attachment; filename="graphImage.png"'},
+        )
+
+        if not os.path.exists("images"):
+            os.mkdir("CryptoImages")
+
+        for stock in CryptoStock.objects.all():
+            if os.path.exists('landingpad/Crypto/'+stock.ticker+'.csv'):
+                df = pd.read_csv('landingpad/Crypto/'+stock.ticker+'.csv')
+                df.dropna(inplace=True)
+
+
+                fig = go.Figure(data=[go.Candlestick(x=df['Date'],
+                            open=df['Open'],
+                            high=df['High'],
+                            low=df['Low'],
+                            close=df['Close'])])
+
+                fig.update_layout(margin = dict(t=2, l=2, r=2, b=2), paper_bgcolor="#fafafa")
+                graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+
+                fig.write_image("CryptoImages/"+stock.ticker+".png")
+        return
+
+
 
 def generateGraphImages(request, csvID):
 
@@ -117,7 +153,7 @@ def generateGraphImages(request, csvID):
     if not os.path.exists("images"):
         os.mkdir("images")
 
-    df = pd.read_csv('landingpad/Yahoo/'+csvID+'.csv')
+    df = pd.read_csv('landingpad/Yahoo/'+csvID+'.csv', nrows=2000)
     df.dropna(inplace=True)
 
 
@@ -208,6 +244,42 @@ def saveCHNDaily(): #,ts_code,symbol,name,area,industry,list_date
             stockRetrieve = ChinaStock(ts_code = i[2], ticker = i[3], name=i[4], area=i[5], industry=i[6], list_date=i[7])
             stockRetrieve.save()
         return
+
+def assignCHNDaily():
+    for stock in ChinaStock.objects.all():
+        df = pd.read_csv('landingpad/China/'+stock.ts_code+'.csv')
+        df = df.fillna(0)
+        newStock = stock
+        for i in df.itertuples(1):
+            newStock.open = i[4]
+            newStock.high = i[5]
+            newStock.low = i[6]
+            newStock.close = i[7]
+            newStock.change = i[10]
+            newStock.volume = i[11]
+        stock.delete()
+        newStock.save()
+    return
+
+def assignUSDaily():
+    for stock in Stock.objects.all():
+        if os.path.exists('landingpad/Yahoo/'+stock.ticker+'.csv'):
+            df = pd.read_csv('landingpad/Yahoo/'+stock.ticker+'.csv')
+            df = df.fillna(0)
+            df = df.tail(1)
+            newStock = stock
+            print(stock.ticker)
+            for i in df.itertuples(1):
+                print("running")
+                newStock.price = i[2]
+                #newStock.high = i[3]
+                #newStock.low = i[4]
+                #newStock.close = i[5]
+                newStock.change = i[2]-stock.price / (stock.price + 0.001)
+                newStock.volume = i[6]
+                stock.delete()
+                newStock.save()
+    return
 
 def saveDaily():
         Stock.objects.all().delete()
@@ -641,6 +713,12 @@ def fixVol(x):
 
 def home(request):
     notify()
+    #createList()
+    #assignUSDaily()
+    #generateCHNGraphImages()
+    #assignCHNDaily()
+    #saveCryptoDaily()
+    #generateCryptoGraphImages()
     #saveDaily()
     #saveCHNDaily()
     #updateSurge()
@@ -729,6 +807,14 @@ def cryptoview(request, stockID):
     }
     return render(request, 'welcome/cryptoview.html', context)
 
+def chineseview(request, stockID):
+    context = {
+        'stockID':stockID,
+        'stock':ChinaStock.objects.get(ticker=stockID)
+    }
+    return render(request, 'welcome/chineseview.html', context)
+
+
 def grabcsv(request, csvID):
     print('GRABBING FILE!')
     print(csvID)
@@ -751,6 +837,30 @@ def grabcsv(request, csvID):
 
 def about(request):
     notify()
+
+    df = pd.read_csv('FinViz.csv', converters={'Change_x':removePerc, 'Market Cap_x':fixVol})
+    df.dropna(inplace=True)
+
+    rangeBounding = [-1.5,1.5]
+    fig = px.treemap(df,
+                 path=['Sector', 'Industry', 'Ticker'],
+                 hover_name='Ticker',
+                 labels='Change_x',
+                 values='Market Cap_x',
+                 color='Change_x',
+                 color_continuous_scale='rdylgn',
+                 maxdepth=2,
+                 branchvalues='total',
+                 range_color=rangeBounding,
+                 color_continuous_midpoint=0,
+                 width=1400,
+                 height=300
+                )
+
+    fig.data[0].textinfo = 'label+text+value+percent entry'
+    fig.update_layout(margin = dict(t=0, l=0, r=0, b=0), paper_bgcolor="#fafafa")
+    graphdiv = opy.plot(fig, auto_open=False, output_type='div')
+
     #saveCryptoDaily()
     #saveIPO()
 
@@ -786,7 +896,8 @@ def about(request):
     context = {
         'stocks':Stock.objects.all(),
         'DOW':dowlist,
-        'volatiles':Stock.objects.all()
+        'volatiles':Stock.objects.all(),
+        'graph':graphdiv
 
     }
     return render(request, 'welcome/about.html',context)

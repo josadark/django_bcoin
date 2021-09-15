@@ -16,6 +16,7 @@
 
 
 {% extends "welcome/base.html" %}
+{% load static %}
 {% block content %}
 
 
@@ -38,6 +39,38 @@
   max-width: 100%;
 }
 </style>
+
+<style>
+
+  .tickerTitle figure {
+    width: 300px;
+    height: 200px;
+    display: none;
+    position: relative;
+    top: 2em;
+    right: 5em;
+    padding: 0;
+    margin: 0;
+    border: 1px solid maroon;
+    background: maroon;
+    border-radius: 1em;
+  }
+
+  .tickerTitle img {
+    display: block;
+    border-radius: 0.8em;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .tickerTitle:focus figure,
+  .tickerTitle:hover figure {
+    display: block;
+  }
+
+
+</style>
+
 
 <!-- Resources -->
 <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
@@ -320,10 +353,17 @@
             <tr>
                 <th>Ticker</th>
                 <th>ts_code</th>
+                <th>graph</th>
                 <th>Name</th>
                 <th>Area</th>
                 <th>Industry</th>
                 <th>Listing Date</th>
+                <th>Open</th>
+                <th>Close</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Volume</th>
+                <th>Change</th>
             </tr>
         </thead>
         <tbody>
@@ -332,10 +372,22 @@
             <tr>
                 <td>{{ stock.ticker }}</td>
                 <td>{{ stock.ts_code }}</td>
+                <td>
+                <div class="tickerTitle">
+                  [ ]
+                    <figure><img src="{% get_static_prefix %}images/CHNGraphs/{{stock.ts_code}}.png" width = "400" height= "300" alt="Graph Not Yet Generated"></figure>
+                 </div>
+               </td>
                 <td>{{ stock.name }}</td>
                 <td>{{ stock.area }}</td>
                 <td>{{ stock.industry }}</td>
                 <td>{{ stock.list_date }}</td>
+                <td>{{ stock.open }}</td>
+                <td>{{ stock.close }}</td>
+                <td>{{ stock.high }}</td>
+                <td>{{ stock.low }}</td>
+                <td>{{ stock.volume }}</td>
+                <td>{{ stock.change }} %</td>
             </tr>
           {%endfor%}
         </tbody>
@@ -343,10 +395,17 @@
           <tr>
             <th>Ticker</th>
             <th>ts_code</th>
+            <th>graph</th>
             <th>Name</th>
             <th>Area</th>
             <th>Industry</th>
             <th>Listing Date</th>
+            <th>Open</th>
+            <th>Close</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Volume</th>
+            <th>Change</th>
           </tr>
         </tfoot>
     </table>
@@ -407,7 +466,7 @@
     $('#table_id tbody').on('click', 'tr', function () {
         var data = table.row( this ).data();
         //alert( 'You clicked on '+data[0]+'\'s row' );
-        //window.location = "http://localhost:8000/cryptoview/"+data[0]+"/";
+        window.location = "/chineseview/"+data[0]+"/";
     } );
 
 

@@ -4,7 +4,24 @@
 <head>
 <style>
 
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
 
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  padding: 12px 16px;
+  z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
 
 .nav-item{
   transition : transform 200ms;
@@ -94,6 +111,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <link rel="stylesheet" type="text/css" href="{% static 'welcome/css/main.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'welcome/css/stockHover.css' %}">
 
     {% if title %}
         <title>Market Tracker - {{ title }}</title>
@@ -113,17 +131,27 @@
             <div class="navbar-nav mr-auto">
               <!---<a class="nav-item nav-link" href="{% url 'welcome-home' %}">Home</a>--->
               <!--<a class="nav-item nav-link" href="{% url 'welcome-about' %}">Screener</a>-->
-              <a class="nav-item nav-link" href="{% url 'welcome-about' %}">US Screener</a>
-              <a class="nav-item nav-link" href="{% url 'chineseMarket' %}">CHN Screener</a>
-              <a class="nav-item nav-link" href="{% url 'welcome-crypto' %}">Crypto Screener</a>
+              <div class = "dropdown">
+                <a class="nav-item nav-link dropdown">Markets</a>
+                <div class="dropdown-content">
+                  <a class="nav-item nav-link" href="{% url 'welcome-about' %}">US Screener</a>
+                  <a class="nav-item nav-link" href="{% url 'chineseMarket' %}">CHN Screener</a>
+                  <a class="nav-item nav-link" href="{% url 'welcome-crypto' %}">Crypto Screener</a>
+                </div>
+            </div>
+              <div class = "dropdown">
+              <a class="nav-item nav-link dropdown">Tools</a>
+              <div class="dropdown-content">
+                {%if user.is_authenticated%}
+                <a class="nav-item nav-link" href="{% url 'welcome-portfolio' %}">Asset Book</a>
+                <a class="nav-item nav-link" href="{% url 'welcome-suggestions' %}">Suggestions</a>
+                <a class="nav-item nav-link" href="{% url 'welcome-screens' %}">Custom Screens</a>
+                {%endif%}
+              </div>
+          </div>
               <!--<a class="nav-item nav-link" href="{% url 'welcome-about' %}">Groups</a>-->
               <a class="nav-item nav-link" href="{% url 'welcome-maps' %}">Maps</a>
               <a class="nav-item nav-link" href="{% url 'groups' %}">Groups</a>
-              {%if user.is_authenticated%}
-              <a class="nav-item nav-link" href="{% url 'welcome-portfolio' %}">Asset Book</a>
-              <a class="nav-item nav-link" href="{% url 'welcome-suggestions' %}">Suggestions</a>
-              <a class="nav-item nav-link" href="{% url 'welcome-screens' %}">Custom Screens</a>
-              {%endif%}
             </div>
             <!-- Navbar Right Side -->
             <div class="navbar-nav">

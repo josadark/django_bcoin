@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime
+import time
 
 def get_files(directory):
     from os import listdir
@@ -17,12 +18,12 @@ def create_dict(list_of_files):
     for i in list_of_files:
         try:
             df = pd.read_csv(i)
-            df.set_index('Date', inplace=True)
+            df.set_index('date', inplace=True)
             df.truncate(before=get_month_ago(df.index[-1],24))
             dict_of_files[i.split('/')[-1].split('.')[0]] = df
         except(Exception) as e:
-            print("Error reading file: " + i)
-            print(e)
+            time.sleep(0.0001)
+            #print(e)
     return dict_of_files
 
 #get one month ago from today
@@ -33,18 +34,18 @@ def get_month_ago(today,n):
 #returns list of dates for a given stock that correlate with a n(x) surge in volume day by day
 def getHighVolDates(df,n):
     highVolDates = []
-    lastVol = df.iloc[-1]['Volume']
+    lastVol = df.iloc[-1]['volume']
     for row in df.iterrows():
-        if row[1]['Volume'] > lastVol*n:
+        if row[1]['volume'] > lastVol*n:
             highVolDates.append(row[0])
-        lastVol = row[1]['Volume']
+        lastVol = row[1]['volume']
     return highVolDates
 
 #Given a list of dates, return a the highest percentage increase in a the stock's closing price from the surge date
 def getHighestPercentIncrease(df,date):
-    initialClose = df.loc[date]['Close']
+    initialClose = df.loc[date]['close']
     d = df.loc[date:]
-    dMax = d['Close'].max()
+    dMax = d['close'].max()
     return ((dMax/initialClose)*100) - 100
 
 

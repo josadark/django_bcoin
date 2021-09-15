@@ -170,13 +170,11 @@ class Stock(models.Model): #contains data for stocks, grabbed by webscraper
 
 class CryptoStock(models.Model): #contains data for stocks, grabbed by webscraper
     ticker = models.CharField(max_length=9)
-    open = models.FloatField()
-    close = models.FloatField()
-    adjclose = models.FloatField()
-    volume = models.IntegerField()
+    name = models.CharField(max_length=32)
+    price = models.FloatField()
     high = models.FloatField()
-    low = models.FloatField()
-    change = models.FloatField()
+    market_cap = models.FloatField()
+    max_supply = models.IntegerField()
 
 class ChinaStock(models.Model):
     #,ts_code,symbol,name,area,industry,list_date
@@ -191,12 +189,12 @@ class ChinaStock(models.Model):
 
     ## obsolete stockdata
 
-    #open = models.FloatField()
-    #close = models.FloatField()
-    #volume = models.IntegerField()
-    #high = models.FloatField()
-    #low = models.FloatField()
-    #change = models.FloatField()
+    open = models.FloatField(blank=True)
+    close = models.FloatField(blank=True)
+    volume = models.IntegerField(blank=True)
+    high = models.FloatField(blank=True)
+    low = models.FloatField(blank=True)
+    change = models.FloatField(blank=True)
     #date = models.DateField()
 
 class SimpleStock(models.Model): #historical stock model for use with older charts
